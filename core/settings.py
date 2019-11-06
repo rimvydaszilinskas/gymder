@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'apps.activities',
     'apps.communication',
     'apps.groups',
+    'apps.pages',
     'apps.users',
     'apps.utils',
 ]

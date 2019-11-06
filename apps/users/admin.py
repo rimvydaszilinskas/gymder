@@ -8,7 +8,8 @@ from .models import User
 
 class UserAdmin(admin.ModelAdmin):
     readonly_fields = [
-        'uuid'
+        'uuid',
+        'password'
     ]
 
     list_display = [

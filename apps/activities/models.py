@@ -33,6 +33,7 @@ class Activity(BaseModel):
     address = models.ForeignKey(
         Address,
         related_name='activities',
+        null=True,
         on_delete=models.DO_NOTHING)
 
     group = models.ForeignKey(
@@ -50,6 +51,7 @@ class Activity(BaseModel):
 
     tags = models.ManyToManyField(
         to=Tag,
+        blank=True,
         related_name='activities')
 
     user = models.ForeignKey(

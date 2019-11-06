@@ -55,6 +55,9 @@ class Address(Model):
 
         return self.address
 
+    class Meta:
+        verbose_name_plural = 'Addresses'
+
 
 class Tag(Model):
     """ Used for hashtagging activities, following 'streams'"""
