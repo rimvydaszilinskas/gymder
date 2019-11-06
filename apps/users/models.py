@@ -11,6 +11,12 @@ class User(BaseModel, AbstractUser):
     """ Main authentication model """
     username = models.CharField(max_length=30, null=True, blank=True, unique=True)
     email = models.EmailField(_('email address'), unique=True, editable=False)
+    address = models.ForeignKey(
+        'utils.Address',
+        null=True,
+        blank=True,
+        related_name='default_user',
+        on_delete=models.SET_NULL)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []

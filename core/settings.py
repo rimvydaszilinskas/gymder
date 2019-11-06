@@ -43,6 +43,9 @@ INSTALLED_APPS = [
 
     'webpack_loader',
 
+    'apps.activities',
+    'apps.communication',
+    'apps.groups',
     'apps.users',
     'apps.utils',
 ]
@@ -133,7 +136,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'static')
+    os.path.join(BASE_DIR, 'static'),
 )
 
 WEBPACK_LOADER = {
