@@ -1,0 +1,30 @@
+### OSX ###
+.DS_Store
+.AppleDouble
+.LSOverride
+
+### IDE ###
+.vscode/
+.idea/
+
+### Virtualenv ###
+env/
+
+### Pyhon ###
+__pycache__/
+*.pyc
+
+db.sqlite3
+
+.env
+*.swap
+
+### Node ###
+node_modules/
+package-lock.json
+webpack-stats.json
+
+static/bundles/
+satatic/django_extensions/
+static/admin/
+static/rest_framework/
