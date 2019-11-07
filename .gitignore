@@ -23,7 +23,6 @@ db.sqlite3
 node_modules/
 package-lock.json
 webpack-stats.json
-package-lock.json
 
 static/bundles/
 satatic/django_extensions/
