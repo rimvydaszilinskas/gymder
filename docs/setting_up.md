@@ -89,7 +89,7 @@ The wizard will guide you through creating a superuser.
 Finally start an application instance:
 
 ```shell
-./manage.py migrate
+./manage.py runserver
 ```
 
 If the application started correctly you can now navigate on your browser to `https://localhost:8000/`.
