@@ -3,7 +3,8 @@
   "version": "0.0.1",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "webpack --config webpack.config.js --progress --colors --mode development",
+    "watch": "rm -rf ./static/bundles && webpack --config webpack.config.js --watch --mode development"
   },
   "author": "",
   "license": "ISC",
@@ -20,7 +21,8 @@
     "babel-preset-react": "^6.24.1",
     "babel-register": "^6.26.0",
     "webpack": "^4.41.2",
-    "webpack-bundle-tracker": "^0.4.3"
+    "webpack-bundle-tracker": "^0.4.3",
+    "webpack-cli": "^3.3.10"
   },
   "dependencies": {
     "react": "^16.11.0",

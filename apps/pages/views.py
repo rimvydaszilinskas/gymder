@@ -1,3 +1,10 @@
 from django.shortcuts import render
+from django.views import View
 
-# Create your views here.
+from .views_mixins import PageViewMixin
+
+
+class IndexView(PageViewMixin):
+    TITLE = 'Homepage'
+    BUNDLE_NAME = 'index'
+        
