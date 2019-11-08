@@ -2,10 +2,24 @@
 
 {% block content %}
 <div class="container">
-    <div class="container">
         <div class="col s12 offset-m2 m8">
             <h1>Login</h1>
-        </div>
+            <form class="site-form" action="{% url 'users:login'%}" method="get">
+                {% csrf_token %}
+                 <div class="input-field col s6">
+                      <input id="Email" type="text" class="validate">
+                      <label for="email">Email</label>
+                 </div>
+                 <div class="input-field col s6">
+                      <input id="Password" type="text" class="validate">
+                      <label for="password">Password</label>
+                 </div>
+             <div class="row">
+                 <div class="input-field col s12">
+                    <a class="waves-effect waves-light btn-small">Log In</a>
+                 </div>
+            </div>
+        </form>
     </div>
 </div>
 {% endblock  %}
