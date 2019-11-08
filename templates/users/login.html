@@ -7,16 +7,16 @@
             <form class="site-form" action="{% url 'users:login'%}" method="get">
                 {% csrf_token %}
                  <div class="input-field col s6">
-                      <input id="Email" type="text" class="validate">
+                      <input id="email" name="email" type="email" class="validate" required>
                       <label for="email">Email</label>
                  </div>
                  <div class="input-field col s6">
-                      <input id="Password" type="text" class="validate">
+                      <input id="password" name="password" type="password" class="validate" requireds>
                       <label for="password">Password</label>
                  </div>
              <div class="row">
                  <div class="input-field col s12">
-                    <a class="waves-effect waves-light btn-small">Log In</a>
+                     <button class="waves-effect waves-light btn-small" type="submit">Login</button>
                  </div>
             </div>
         </form>
