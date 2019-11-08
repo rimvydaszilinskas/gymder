@@ -14,7 +14,7 @@ class ActivityType(BaseModel):
     approved = models.BooleanField(default=False)
 
     def __str__(self):
-        return super().__str__()
+        return self.title
 
 
 class Activity(BaseModel):
@@ -73,7 +73,7 @@ class IndividualActivity(Activity):
 
 class GroupActivity(Activity):
     max_attendees = models.IntegerField(
-        default=60,
+        default=5,
         validators=(
             MinValueValidator(2),
             MaxValueValidator(500)
