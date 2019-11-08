@@ -21,4 +21,6 @@ urlpatterns = [
     
     url(r'^admin/', admin.site.urls),
     url(r'', include(('apps.pages.urls', 'pages'), namespace='pages')),
+    url(r'^users/', include(('apps.users.urls', 'users'), namespace='users')),
+    
 ]
