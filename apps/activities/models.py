@@ -1,12 +1,15 @@
+from decimal import Decimal
+
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone
+from django.utils.functional import cached_property
 
 from apps.utils.constants import Currencies
 from apps.utils.models import BaseModel, Tag, Address
 from apps.users.models import User
 
-from .constants import RequestStatus
+from .constants import RequestStatus, ActivityFormat
 
 
 class ActivityType(BaseModel):
@@ -63,12 +66,26 @@ class Activity(BaseModel):
     public = models.BooleanField(default=True)
     needs_approval = models.BooleanField(default=True)
 
+    FORMAT = None
+
     def __str__(self):
         return self.title
 
+    @cached_property
+    def child(self):
+        """ Get subchild of the activity """
+        try:
+            activity = GroupActivity.objects.get(uuid=self.uuid)
+        except:
+            try:
+                activity = IndividualActivity.objects.get(uuid=self.uuid)
+            except:
+                activity = None
+        return activity
+
 
 class IndividualActivity(Activity):
-    pass
+    FORMAT = ActivityFormat.INDIVIDUAL
 
 
 class GroupActivity(Activity):
@@ -79,8 +96,17 @@ class GroupActivity(Activity):
             MaxValueValidator(500)
         ))
 
-    price = models.DecimalField(max_digits=12, decimal_places=4)
-    currency = models.CharField(max_length=30, choices=Currencies.CHOICES, default=Currencies.DKK)
+    price = models.DecimalField(
+        max_digits=12,
+        decimal_places=4,
+        default=Decimal(0))
+        
+    currency = models.CharField(
+        max_length=30,
+        choices=Currencies.CHOICES,
+        default=Currencies.DKK)
+
+    FORMAT = ActivityFormat.GROUP
 
 
 class Request(BaseModel):

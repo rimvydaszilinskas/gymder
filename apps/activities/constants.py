@@ -8,3 +8,8 @@ class RequestStatus:
         (PENDING, 'Pending'),
         (DENIED, 'Denied')
     )
+
+
+class ActivityFormat:
+    INDIVIDUAL = 'individual'
+    GROUP = 'group'
