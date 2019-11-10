@@ -87,6 +87,9 @@ class Activity(BaseModel):
 class IndividualActivity(Activity):
     FORMAT = ActivityFormat.INDIVIDUAL
 
+    class Meta:
+        verbose_name_plural = 'Individual Activities'
+
 
 class GroupActivity(Activity):
     max_attendees = models.IntegerField(
@@ -107,6 +110,9 @@ class GroupActivity(Activity):
         default=Currencies.DKK)
 
     FORMAT = ActivityFormat.GROUP
+
+    class Meta:
+        verbose_name_plural = 'Group activities'
 
 
 class Request(BaseModel):

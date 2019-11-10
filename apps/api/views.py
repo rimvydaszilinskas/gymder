@@ -15,6 +15,8 @@ from apps.activities.serializers import (
     IndividualActivitySerializer,
     GroupActivitySerializer
 )
+from apps.utils.models import Tag
+from apps.utils.serializers import TagSerializer
 from apps.utils.views_mixins import PutPatchMixin
 
 from .views_mixins import FindActivityMixin, ActivityMixin
@@ -22,13 +24,16 @@ from .views_mixins import FindActivityMixin, ActivityMixin
 
 class IndividualActivitiesView(ActivityMixin, APIView):
     """
-    Handle creation of getting and creating activities
+    Handle getting and creating individual activities
     """
     object_class = IndividualActivity
     serializer_class = IndividualActivitySerializer
 
 
 class GroupActivityView(ActivityMixin, APIView):
+    """
+    Handle getting and creating group activities
+    """
     object_class = GroupActivity
     serializer_class = GroupActivitySerializer
 
@@ -64,3 +69,32 @@ class ActivityView(PutPatchMixin, FindActivityMixin, APIView):
         return Response(
             status=status.HTTP_200_OK,
             data=serializer.data)
+
+
+class ActivityTagsView(APIView):
+    serializer_class = TagSerializer
+
+    def post(self, request, *args, **kwargs):
+        uuid = kwargs['uuid']
+        activity = get_object_or_404(Activity, uuid=uuid)
+
+        activity_tags = []
+        activity.tags.clear()
+        tags = request.data.get('tags', None)
+
+        if tags and isinstance(tags, list):
+            for tag in tags:
+                title = tag.get('title', None)
+                tag_uuid = tag.get('uuid', None)
+
+                if tag_uuid:
+                    tag_db, created = Tag.objects.get_or_create(uuid=tag_uuid)
+                else:
+                    tag_db, created = Tag.objects.get_or_create(title=title)
+
+                activity.tags.add(tag_db)
+                activity_tags.append(tag_db)
+        
+        serializer = self.serializer_class(activity_tags, many=True)
+
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
