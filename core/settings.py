@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
+import googlemaps
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -165,3 +166,11 @@ WEBPACK_LOADER = {
         'STATS_FILE': os.path.join(BASE_DIR, 'webpack-stats.json')
     }
 }
+
+
+# Setup Google Maps
+GOOGLE_MAPS_API = None
+GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY', None)
+
+if GOOGLE_MAPS_API_KEY:
+    GOOGLE_MAPS_API = googlemaps.Client(key=GOOGLE_MAPS_API_KEY)
