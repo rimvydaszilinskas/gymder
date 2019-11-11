@@ -127,8 +127,14 @@ def my_handler(sender, instance, *args, **kwargs):
 
 
 class Request(BaseModel):
-    activity = models.ForeignKey(Activity, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    activity = models.ForeignKey(
+        Activity,
+        on_delete=models.CASCADE,
+        related_name='requests')
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='requests')
     
     status = models.CharField(
         max_length=12,

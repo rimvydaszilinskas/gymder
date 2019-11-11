@@ -1,10 +1,14 @@
+from datetime import datetime
+
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.generics import ListAPIView
 
-from apps.activities.constants import ActivityFormat
+from apps.activities.constants import ActivityFormat, RequestStatus
 from apps.activities.models import (
     Activity,
     GroupActivity,
@@ -13,7 +17,9 @@ from apps.activities.models import (
 from apps.activities.serializers import (
     ActivitySerializer, 
     IndividualActivitySerializer,
-    GroupActivitySerializer
+    GroupActivitySerializer,
+    RequestSerializer,
+    UserRequestSerializer
 )
 from apps.activities.utils import can_edit_activity, can_view_activity
 from apps.utils.models import Tag
@@ -115,3 +121,19 @@ class ActivityTagsView(APIView):
         serializer = self.serializer_class(activity_tags, many=True)
 
         return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+
+class UserActivitiesView(ListAPIView):
+    """ Get future user activities """
+    serializer_class = ActivitySerializer
+
+    def get_queryset(self):
+        return Activity.objects.filter(
+            time_gte=datetime.today(),
+            is_deleted=False
+        ).filter(
+            Q(user=self.request.user) | Q(
+                requests__user=self.request.user,
+                requests__status=RequestStatus.APPROVED
+            )
+        )
