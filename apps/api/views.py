@@ -15,6 +15,7 @@ from apps.activities.serializers import (
     IndividualActivitySerializer,
     GroupActivitySerializer
 )
+from apps.activities.utils import can_edit_activity, can_view_activity
 from apps.utils.models import Tag
 from apps.utils.serializers import TagSerializer
 from apps.utils.views_mixins import PutPatchMixin
@@ -40,27 +41,31 @@ class GroupActivityView(ActivityMixin, APIView):
 
 class ActivityView(PutPatchMixin, FindActivityMixin, APIView):
     """
-    Individual and group activity CRUD
+    Individual and group activity UD
     """
     individual_serializer_class = IndividualActivitySerializer
     group_serializer_class = None
 
     def get(self, request, *args, **kwargs):
-        activity = self.get_object_and_serializer(kwargs['uuid'])
+        activity = self.get_object(kwargs['uuid'])
+
+        can_view_activity(activity, request.user, raise_exception=True)
         
         if activity.FORMAT == ActivityFormat.INDIVIDUAL:
             serializer = self.individual_serializer_class(activity)
-        elif activity.FORMAT == ActivityFormat.GROUP:
+        else:
             serializer = self.group_serializer_class(activity)
 
         return Response(serializer.data)
 
     def post(self, request, *args, **kwargs):
-        activity = self.get_object_and_serializer(kwargs['uuid'])
+        activity = self.get_object(kwargs['uuid'])
+
+        can_edit_activity(activity, request.user, raise_exception=True)
 
         if activity.FORMAT == ActivityFormat.INDIVIDUAL:
             serializer = self.individual_serializer_class(activity, data=request.data)
-        elif activity.FORMAT == ActivityFormat.GROUP:
+        else:
             serializer = self.group_serializer_class(activity, data=request.data)
 
         serializer.is_valid(raise_exception=True)
@@ -70,6 +75,16 @@ class ActivityView(PutPatchMixin, FindActivityMixin, APIView):
             status=status.HTTP_200_OK,
             data=serializer.data)
 
+    def delete(self, request, *args, **kwargs):
+        activity = self.get_object(kwargs['uuid'])
+
+        can_edit_activity(activity, request.user, raise_exception=True)
+
+        activity.is_deleted = True
+        activity.save(update_fields=['is_deleted'])
+
+        return Response(status=status.HTTP_200_OK)
+
 
 class ActivityTagsView(APIView):
     serializer_class = TagSerializer
@@ -77,6 +92,8 @@ class ActivityTagsView(APIView):
     def post(self, request, *args, **kwargs):
         uuid = kwargs['uuid']
         activity = get_object_or_404(Activity, uuid=uuid)
+
+        can_edit_activity(activity, request.user, raise_exception=True)
 
         activity_tags = []
         activity.tags.clear()

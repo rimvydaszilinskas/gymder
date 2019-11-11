@@ -11,19 +11,24 @@ class FindActivityMixin(object):
     Mixin to help find the activity based on UUID.
     """
 
-    def get_object_and_serializer(self, uuid, data=None):
+    def get_object(self, uuid, data=None):
         """
         Finds appropriate activity and returns a tuple of object and serializer
         """
         try:
-            activity = IndividualActivity.objects.get(uuid=uuid)
+            activity = IndividualActivity.objects.get(uuid=uuid, is_deleted=False)
         except:
-            activity = get_object_or_404(GroupActivity, uuid=uuid)
+            activity = get_object_or_404(GroupActivity, uuid=uuid, is_deleted=False)
 
         return activity
 
 
 class ActivityMixin(object):
+    """
+    General view for getting activities
+
+    Specify `object_class` and `serializer_class` to use this
+    """
     object_class = None
     serializer_class = None
 

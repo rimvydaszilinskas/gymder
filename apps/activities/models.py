@@ -10,6 +10,7 @@ from apps.utils.models import BaseModel, Tag, Address
 from apps.users.models import User
 
 from .constants import RequestStatus, ActivityFormat
+from .managers import ActivityManager
 
 
 class ActivityType(BaseModel):
@@ -66,6 +67,7 @@ class Activity(BaseModel):
     public = models.BooleanField(default=True)
     needs_approval = models.BooleanField(default=True)
 
+    objects = ActivityManager()
     FORMAT = None
 
     def __str__(self):
