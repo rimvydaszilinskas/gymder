@@ -4,10 +4,10 @@
 <div class="container">
         <div class="col s12 offset-m2 m8">
             <h1>Login</h1>
-            <form class="site-form" action="{% url 'users:login'%}" method="get">
+            <form class="site-form" action="{% url 'users:login'%}" method="post">
                 {% csrf_token %}
                  <div class="input-field col s6">
-                      <input id="email" name="email" type="email" class="validate" required>
+                      <input id="email" name="email" type="email" name="email" class="validate" required>
                       <label for="email">Email</label>
                  </div>
                  <div class="input-field col s6">

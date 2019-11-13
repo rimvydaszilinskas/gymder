@@ -4,7 +4,7 @@ from django.views import View
 
 
 from .models import User
-
+from .forms import AuthenticationForm
 
 class ProfileView(View):
     template_name = 'users/profile.html'
@@ -18,7 +18,7 @@ class ProfileView(View):
         if not request.user.is_authenticated:
             return redirect(to=reverse('users:login') + '?next={}&require=true'.format(reverse('users:profile')))
 
-        return super().get(request, *args, **kwargs)
+        return render(request, self.template_name)
 
 
 class RegisterView(View):
@@ -39,7 +39,7 @@ class RegisterView(View):
         password_repeat = request.POST.get('repeat_password', None)
         first_name = request.POST.get('first_name', None)
         last_name = request.POST.get('last_name', None)
-        terms = request.Post.get(bool="yes")
+        # terms = request.Post.get(bool="yes")
 
         try:
             if password != password_repeat:
@@ -62,6 +62,8 @@ class RegisterView(View):
 
 
 class LoginView(View):
+    form_class = AuthenticationForm
+
     def get(self, request, *args, **kwargs):
         # check if user is already authenticated
         if request.user.is_authenticated:
@@ -91,3 +93,10 @@ class LoginView(View):
 
             return self.get(request, *args, **kwargs)
 
+
+class LogoutView(View):
+    """ Logout user and redirect to login page """
+
+    def get(self, request,  *args, **kwargs):
+        logout(request)
+        return redirect(reverse('users:login'))
