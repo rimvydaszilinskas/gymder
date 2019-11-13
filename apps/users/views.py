@@ -22,6 +22,8 @@ class ProfileView(View):
 
 
 class RegisterView(View):
+    template_name = 'users/register.html'
+
     def get(self, request, *args, **kwargs):
         if request.user.is_authenticated:
             return redirect('users:profile')
@@ -53,7 +55,7 @@ class RegisterView(View):
 
             user.first_name = first_name
             user.last_name = last_name
-            user.terms = terms
+            # user.terms = terms
             user.save()
 
             return redirect(reverse('users:login'))
