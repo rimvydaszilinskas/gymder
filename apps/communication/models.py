@@ -10,12 +10,14 @@ class Post(BaseModel):
     
     user = models.ForeignKey(
         'users.User',
+        related_name='posts',
         on_delete=models.CASCADE)
 
     group = models.ForeignKey(
         'groups.Group',
         null=True,
         blank=True,
+        related_name='posts',
         on_delete=models.CASCADE)
 
     activitiy = models.ForeignKey(
@@ -35,12 +37,14 @@ class Comment(BaseModel):
 
     user = models.ForeignKey(
         'users.User',
+        related_name='comments',
         null=True,
         blank=True,
         on_delete=models.SET_NULL)
 
     post = models.ForeignKey(
         Post,
+        related_name='comments',
         on_delete=models.CASCADE)
 
     def __str__(self):

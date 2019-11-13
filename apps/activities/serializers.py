@@ -15,7 +15,8 @@ from .models import (
     ActivityType,
     Activity,
     GroupActivity,
-    IndividualActivity
+    IndividualActivity,
+    Request
 )
 
 
@@ -44,6 +45,7 @@ class ActivitySerializer(serializers.ModelSerializer):
     needs_approval = serializers.BooleanField(required=False)
     user = UserSerializer(read_only=True)
     tags = TagSerializer(many=True, required=False)
+    is_group = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = IndividualActivity
@@ -58,7 +60,8 @@ class ActivitySerializer(serializers.ModelSerializer):
             'public',
             'needs_approval',
             'user',
-            'tags'
+            'tags',
+            'is_group'
         )
 
 
@@ -206,3 +209,32 @@ class GroupActivitySerializer(ActivityTypeSerializer):
             self.instance = self.update(self.instance, self.validated_data)
 
         return self.instance
+
+
+class UserRequestSerializer(serializers.ModelSerializer):
+    """ Used for returning events to user view page"""
+    uuid = serializers.UUIDField(format='hex', read_only=True)
+    activity = ActivitySerializer(read_only=True)
+
+    class Meta:
+        model = Request
+        fields = (
+            'uuid',
+            'status',
+            'activity',
+        )
+
+
+class RequestSerializer(serializers.ModelSerializer):
+    """ Used for returning attendees to event """
+    uuid = serializers.UUIDField(format='hex', read_only=True)
+    user = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Request
+        fields = (
+            'uuid',
+            'status',
+            'activity',
+            'message'
+        )

@@ -4,6 +4,8 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone
 from django.utils.functional import cached_property
+from django.dispatch import receiver
+from django.db.models.signals import pre_save
 
 from apps.utils.constants import Currencies
 from apps.utils.models import BaseModel, Tag, Address
@@ -24,6 +26,7 @@ class ActivityType(BaseModel):
 class Activity(BaseModel):
     title = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
+    is_group = models.BooleanField(default=False)
 
     time = models.DateTimeField(default=timezone.now)
     duration = models.IntegerField(
@@ -117,9 +120,21 @@ class GroupActivity(Activity):
         verbose_name_plural = 'Group activities'
 
 
+@receiver(pre_save, sender=GroupActivity)
+def my_handler(sender, instance, *args, **kwargs):
+    if not instance.is_group:
+        instance.is_group = True
+
+
 class Request(BaseModel):
-    activity = models.ForeignKey(Activity, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    activity = models.ForeignKey(
+        Activity,
+        on_delete=models.CASCADE,
+        related_name='requests')
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='requests')
     
     status = models.CharField(
         max_length=12,

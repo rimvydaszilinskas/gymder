@@ -51,9 +51,9 @@ class Address(Model):
 
     def __str__(self):
         if self.user:
-            return '{0} of {1}'.format(self.address, str(self.user))
+            return '{0} of {1}'.format(self.address if self.address else 'None', str(self.user) if self.user else 'None')
 
-        return self.address
+        return self.address if self.address else 'None'
 
     class Meta:
         verbose_name_plural = 'Addresses'
