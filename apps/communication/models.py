@@ -20,10 +20,11 @@ class Post(BaseModel):
         related_name='posts',
         on_delete=models.CASCADE)
 
-    activitiy = models.ForeignKey(
+    activity = models.ForeignKey(
         'activities.Activity',
         null=True,
         blank=True,
+        related_name='posts',
         on_delete=models.CASCADE)
 
     def __str__(self):

@@ -2,6 +2,7 @@ from datetime import datetime
 
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
+from django.http import Http404, HttpResponseForbidden
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -22,6 +23,11 @@ from apps.activities.serializers import (
     UserRequestSerializer
 )
 from apps.activities.utils import can_edit_activity, can_view_activity, find_close_to_address
+from apps.communication.models import Post, Comment
+from apps.communication.serializers import (
+    CommentSerializer, 
+    PostSerializer,
+    FullPostSerializer)  
 from apps.groups.constants import MembershipTypes
 from apps.groups.models import Group, Membership
 from apps.groups.serializer import (
@@ -42,9 +48,11 @@ from .views_mixins import (
     FindActivityMixin,
     ActivityMixin,
     GroupMixin,
-    MembershipMixin
+    MembershipMixin,
+    PostMixin
 )
 
+# Activities views
 
 class IndividualActivitiesView(ActivityMixin, APIView):
     """
@@ -70,7 +78,7 @@ class ActivityView(PutPatchMixin, FindActivityMixin, APIView):
     group_serializer_class = None
 
     def get(self, request, *args, **kwargs):
-        activity = self.get_object(kwargs['uuid'])
+        activity = self.get_activity(kwargs['uuid'])
 
         can_view_activity(activity, request.user, raise_exception=True)
         
@@ -82,7 +90,7 @@ class ActivityView(PutPatchMixin, FindActivityMixin, APIView):
         return Response(serializer.data)
 
     def post(self, request, *args, **kwargs):
-        activity = self.get_object(kwargs['uuid'])
+        activity = self.get_activity(kwargs['uuid'])
 
         can_edit_activity(activity, request.user, raise_exception=True)
 
@@ -143,33 +151,6 @@ class ActivityTagsView(APIView):
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
 
-class UserActivitiesView(ListAPIView):
-    """ Get future user activities """
-    serializer_class = ActivitySerializer
-
-    def get_queryset(self):
-        return Activity.objects.filter(
-            time_gte=datetime.today(),
-            is_deleted=False
-        ).filter(
-            Q(user=self.request.user) | Q(
-                requests__user=self.request.user,
-                requests__status=RequestStatus.APPROVED
-            )
-        )
-
-
-class UserMembershipsView(ListAPIView):
-    """
-    Retrieve all user group memberships
-    """
-    serializer_class = UserMembershipSerializer
-
-    def get_queryset(self):
-        return self.request.user.memberships.filter(
-            is_deleted=False, status=RequestStatus.APPROVED)
-
-
 class RegisterActivityAddress(FindActivityMixin, APIView):
     """
     Activity address API endpoint
@@ -177,14 +158,14 @@ class RegisterActivityAddress(FindActivityMixin, APIView):
     serializer_class = AddressSerializer
 
     def get(self, request, *args, **kwargs):
-        activity = self.get_object(kwargs['uuid'])
+        activity = self.get_activity(kwargs['uuid'])
 
         serializer = self.serializer_class(activity.address)
 
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
     def post(self, request, *args, **kwargs):
-        activity = self.get_object(kwargs['uuid'])
+        activity = self.get_activity(kwargs['uuid'])
 
         serializer = self.serializer_class(data=request.data)
 
@@ -222,6 +203,35 @@ class NearbyActivitiesView(APIView):
             return Response(status=status.HTTP_200_OK, data=serializer.data)
 
         return Response(status=status.HTTP_404_NOT_FOUND)
+
+# User views
+
+
+class UserActivitiesView(ListAPIView):
+    """ Get future user activities """
+    serializer_class = ActivitySerializer
+
+    def get_queryset(self):
+        return Activity.objects.filter(
+            time_gte=datetime.today(),
+            is_deleted=False
+        ).filter(
+            Q(user=self.request.user) | Q(
+                requests__user=self.request.user,
+                requests__status=RequestStatus.APPROVED
+            )
+        )
+
+
+class UserMembershipsView(ListAPIView):
+    """
+    Retrieve all user group memberships
+    """
+    serializer_class = UserMembershipSerializer
+
+    def get_queryset(self):
+        return self.request.user.memberships.filter(
+            is_deleted=False, status=RequestStatus.APPROVED)
 
 
 class UserAddressView(APIView):
@@ -290,6 +300,8 @@ class UserGroupView(ListAPIView):
         return Response(
             status=status.HTTP_201_CREATED, 
             data=serializer.data)
+
+# Groups views
 
 
 class GroupView(GroupMixin, PutPatchMixin, APIView):
@@ -418,5 +430,139 @@ class MembershipView(MembershipMixin, APIView):
 
         membership.is_deleted = True
         membership.save(update_fields=['is_deleted'])
+
+        return Response(status=status.HTTP_200_OK)
+
+
+# Communication views
+
+
+class GroupPostView(GroupMixin, ListAPIView):
+    """
+    Get or create posts inside a group
+    """
+    serializer_class = PostSerializer
+
+    def get_queryset(self):
+        group = self.get_group(self.kwargs['uuid'], self.request.user)
+
+        posts = group.posts.filter(is_deleted=False)
+
+        return posts
+
+    def post(self, request, *args, **kwargs):
+        group = self.get_group(kwargs['uuid'], request.user)
+
+        serializer = self.serializer_class(data=request.data)
+
+        serializer.is_valid(raise_exception=True)
+
+        serializer.save(group=group, user=request.user)
+
+        return Response(
+            status=status.HTTP_201_CREATED,
+            data=serializer.data)
+
+
+class ActivityPostView(FindActivityMixin, ListAPIView):
+    """
+    Get or create posts inside activity
+    """
+    serializer_class = PostSerializer
+
+    def get_queryset(self):
+        activity = self.get_activity(self.kwargs['uuid'], self.request.user)
+
+        posts = activity.posts.filter(is_deleted=False)
+
+        return posts
+    
+    def post(self, request, *args, **kwargs):
+        activity = self.get_activity(self.kwargs['uuid'], self.request.user)
+
+        serializer = self.serializer_class(data=request.data)
+
+        serializer.is_valid(raise_exception=True)
+
+        serializer.save(activity=activity, user=request.user)
+        
+        return Response(
+            status=status.HTTP_201_CREATED,
+            data=serializer.data)
+
+
+class PostView(PostMixin, PutPatchMixin, APIView):
+    """
+    Post view
+
+    Only allowed if belongs to the same group/activity as the user
+
+    Post will update it only if the author is accessing it
+    """
+    serializer_class = FullPostSerializer
+
+    def get(self, request, *args, **kwargs):
+        post = self.get_post(kwargs['uuid'], request.user)
+
+        serializer = self.serializer_class(post)
+
+        return Response(
+            status=status.HTTP_200_OK,
+            data=serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        post = get_object_or_404(Post, uuid=kwargs['uuid'], is_deleted=False)
+
+        if post.user != request.user:
+            raise HttpResponseForbidden()
+
+        serializer = self.serializer_class(post, data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        serializer.save()
+
+        return Response(
+            status=status.HTTP_200_OK,
+            data=serializer.data)
+
+    def delete(self, request, *args, **kwargs):
+        post = self.get_post_delete(kwargs['uuid'], request.user)
+
+        post.is_deleted = True
+        post.save(update_fields=['is_deleted'])
+
+        return Response(status=status.HTTP_200_OK)
+
+
+class CommentView(PostMixin, APIView):
+    """
+    Comment view for adding comments to posts and deleting them
+    """
+    serializer_class = CommentSerializer
+
+    def post(self, request, *args, **kwargs):
+        post = self.get_post(kwargs['uuid'], request.user)
+
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        serializer.save(user=request.user, post=post)
+
+        return Response(status=status.HTTP_201_CREATED, data=serializer.data)
+
+    def delete(self, request, *args, **kwargs):
+        # call get post to check if user has access to comment
+        self.get_post(kwargs['uuid'], request.user)
+
+        if 'comment_uuid' not in kwargs:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        comment = get_object_or_404(Comment, uuid=kwargs['comment_uuid'])
+
+        if comment.user != request.user:
+            raise HttpResponseForbidden()
+
+        comment.is_deleted = True
+        comment.save(update_fields=['is_deleted'])
 
         return Response(status=status.HTTP_200_OK)

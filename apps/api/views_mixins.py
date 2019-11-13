@@ -6,6 +6,7 @@ from rest_framework import status
 
 from apps.activities.constants import RequestStatus
 from apps.activities.models import GroupActivity, IndividualActivity
+from apps.communication.models import Post
 from apps.groups.constants import MembershipTypes
 from apps.groups.models import Group, Membership
 
@@ -15,16 +16,36 @@ class FindActivityMixin(object):
     Mixin to help find the activity based on UUID.
     """
 
-    def get_object(self, uuid, data=None):
+    def get_activity(self, uuid, user):
         """
-        Finds appropriate activity and returns a tuple of object and serializer
+        Finds appropriate activity and returns activity if user has enough rights
         """
         try:
             activity = IndividualActivity.objects.get(uuid=uuid, is_deleted=False)
         except:
             activity = get_object_or_404(GroupActivity, uuid=uuid, is_deleted=False)
 
-        return activity
+        if activity.public:
+            return activity
+        
+        if activity.user == user:
+            return activity
+
+        group = activity.group
+
+        if group is not None:
+            if group.user == user:
+                return activity
+            
+            membership = group.memberships.filter(
+                user=user, 
+                status=RequestStatus.APPROVED, 
+                is_deleted=False)
+
+            if membership.exists():
+                return activity
+
+        raise HttpResponseForbidden()
 
 
 class ActivityMixin(object):
@@ -158,3 +179,75 @@ class MembershipMixin(object):
                 return membership
 
         raise HttpResponseForbidden()
+
+
+class PostMixin(object):
+    """
+    Post mixin for retrieving posts
+    """
+    def get_post(self, uuid, user):
+        post = get_object_or_404(Post, uuid=uuid, is_deleted=False)
+
+        group = post.group
+        activity = post.activity
+
+        if post.user != user:
+            if group is not None:
+                membership = group.memberships.filter(
+                    user=user,
+                    is_deleted=False,
+                    status=RequestStatus.APPROVED)
+                
+                if not membership.exists() and group.user != user:
+                    raise HttpResponseForbidden()
+            elif activity is not None:
+                if not activity.public:
+                    activity_group = activity.group
+                    
+                    if activity_group is not None:
+                        memberships = activity_group.memberships.filter(
+                            user=user,
+                            is_deleted=False,
+                            status=RequestStatus.APPROVED)
+                        
+                        if not membership.exists() and activity_group != user:
+                            raise HttpResponseForbidden()
+                    elif activity.user != user and \
+                        not activity.requests.filter(
+                            user=user, 
+                            status__in=[RequestStatus.APPROVED, RequestStatus.PENDING], 
+                            is_deleted=False).exists():
+                        raise HttpResponseForbidden()
+
+        return post
+    
+    def get_post_delete(self, uuid, user):
+        post = get_object_or_404(Post, uuid=uuid, is_deleted=False)
+
+        group = post.group
+        activity = post.activity
+
+        if post.user == user:
+            if group is not None:
+                membership = group.memberships.filter(
+                    user=user,
+                    is_deleted=False,
+                    status=RequestStatus.APPROVED,
+                    membership_type=MembershipTypes.ADMIN)
+                
+                if not membership.exists() and group.user != user:
+                    raise HttpResponseForbidden()
+            elif activity is not None:
+                if activity.user != user:
+                    activity_group = activity.group
+
+                    if activity_group is not None:
+                        memberships = activity_group.memberships.filter(
+                            user=user,
+                            is_deleted=False,
+                            status=RequestStatus.APPROVED,
+                            membership_type=MembershipTypes.ADMIN)
+                        
+                        if not memberships.exists() and activity_group.user != user:
+                            raise HttpResponseForbidden()
+        return post
