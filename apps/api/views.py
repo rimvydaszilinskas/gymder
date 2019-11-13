@@ -22,10 +22,14 @@ from apps.activities.serializers import (
     UserRequestSerializer
 )
 from apps.activities.utils import can_edit_activity, can_view_activity, find_close_to_address
-from apps.groups.models import Group
+from apps.groups.constants import MembershipTypes
+from apps.groups.models import Group, Membership
 from apps.groups.serializer import (
     GroupSerializer,
+    MembershipSerializer,
+    UserMembershipSerializer
 )
+from apps.users.models import User
 from apps.utils.models import Tag
 from apps.utils.serializers import (
     TagSerializer,
@@ -37,7 +41,8 @@ from apps.utils.views_mixins import PutPatchMixin
 from .views_mixins import (
     FindActivityMixin,
     ActivityMixin,
-    GroupMixin
+    GroupMixin,
+    MembershipMixin
 )
 
 
@@ -105,6 +110,9 @@ class ActivityView(PutPatchMixin, FindActivityMixin, APIView):
 
 
 class ActivityTagsView(APIView):
+    """
+    View for adding tags to activity
+    """
     serializer_class = TagSerializer
 
     def post(self, request, *args, **kwargs):
@@ -149,6 +157,17 @@ class UserActivitiesView(ListAPIView):
                 requests__status=RequestStatus.APPROVED
             )
         )
+
+
+class UserMembershipsView(ListAPIView):
+    """
+    Retrieve all user group memberships
+    """
+    serializer_class = UserMembershipSerializer
+
+    def get_queryset(self):
+        return self.request.user.memberships.filter(
+            is_deleted=False, status=RequestStatus.APPROVED)
 
 
 class RegisterActivityAddress(FindActivityMixin, APIView):
@@ -260,7 +279,13 @@ class UserGroupView(ListAPIView):
 
         serializer.is_valid(raise_exception=True)
 
-        serializer.save(user=request.user)
+        group = serializer.save(user=request.user)
+
+        Membership.objects.create(
+            group=group,
+            user=request.user,
+            membership_type=MembershipTypes.ADMIN,
+            status=RequestStatus.APPROVED)
 
         return Response(
             status=status.HTTP_201_CREATED, 
@@ -300,5 +325,98 @@ class GroupView(GroupMixin, PutPatchMixin, APIView):
 
         group.is_deleted = True
         group.save(update_fields=['is_deleted'])
+
+        return Response(status=status.HTTP_200_OK)
+
+
+class GroupMembershipsView(GroupMixin, APIView):
+    """
+    Base group membership view for previewing memberships and adding new ones
+    """
+    serializer_class = MembershipSerializer
+
+    def get(self, request, *args, **kwargs):
+        group = self.get_group(kwargs['uuid'], request.user)
+
+        serializer = self.serializer_class(
+            group.memberships.filter(is_deleted=False), many=True)
+        
+        return Response(data=serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        group = self.get_group(uuid=kwargs['uuid'], user=request.user)
+
+        user_uuid = request.data.get('user_uuid', None)
+        user_email = request.data.get('user_email', None)
+        membership_status = RequestStatus.APPROVED if not group.needs_approval else RequestStatus.PENDING
+
+        if user_uuid:
+            user = get_object_or_404(User, uuid=user_uuid)
+        elif user_email:
+            user = get_object_or_404(User, email=user_email)
+        else:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST, 
+                data={'detail': 'please specify user_uuid'})
+
+        membership = Membership.objects.create(
+            user=user,
+            group=group,
+            status=membership_status,
+            membership_type=MembershipTypes.PARTICIPANT)
+
+        serializer = self.serializer_class(membership)
+
+        return Response(
+            status=status.HTTP_201_CREATED,
+            data=serializer.data)
+
+
+class MembershipView(MembershipMixin, APIView):
+    """
+    View for managing specific memberships
+    """
+    serializer_class = MembershipSerializer
+
+    def get(self, request, *args, **kwargs):
+        """
+        This returns the specified membership
+
+        The rules for who can see it are defined in get_membership from MembershipMixin
+        """
+        membership = self.get_membership(
+            uuid=kwargs['uuid'],
+            user=request.user)
+        
+        serializer = self.serializer_class(membership)
+
+        return Response(serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        """
+        Edit membership
+
+        Only the superuser and group admin/owner can access this
+        """
+        membership = self.get_membership_edit(
+            uuid=kwargs['uuid'], user=request.user)
+
+        serializer = self.serializer_class(membership, data=request.data)
+
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+    def delete(self, request, *args, **kwargs):
+        """
+        Delete membership
+
+        Can be accessed by superuser, group admin and the user of the membership
+        """
+        membership = self.get_membership_delete(kwargs['uuid'], user=request.user)
+
+        membership.is_deleted = True
+        membership.save(update_fields=['is_deleted'])
 
         return Response(status=status.HTTP_200_OK)

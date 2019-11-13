@@ -43,3 +43,41 @@ class GroupSerializer(serializers.ModelSerializer):
             self.instance = self.update(self.instance, self.validated_data)
 
         return self.instance
+
+
+class MembershipSerializer(serializers.ModelSerializer):
+    """
+    A read-only membership serializers
+    """
+    uuid = serializers.UUIDField(format='hex', read_only=True)
+    status = serializers.CharField(read_only=True)
+    user = UserSerializer(read_only=True)
+    membership_type = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = Membership
+        fields = (
+            'uuid',
+            'status',
+            'user',
+            'membership_type'
+        )
+
+
+class UserMembershipSerializer(serializers.ModelSerializer):
+    """
+    A read-only user membership serializers
+    """
+    uuid = serializers.UUIDField(format='hex', read_only=True)
+    status = serializers.CharField(read_only=True)
+    group = GroupSerializer(read_only=True)
+    membership_type = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = Membership
+        fields = (
+            'uuid',
+            'status',
+            'group',
+            'membership_type'
+        )

@@ -47,4 +47,4 @@ class Membership(BaseModel):
         default=MembershipTypes.PARTICIPANT)
 
     def __str__(self):
-        return '{group} - {user}'.format(group=str(group), user=str(user))
+        return '{group} - {user}'.format(group=str(self.group), user=str(self.user))
