@@ -28,6 +28,7 @@ class Group(BaseModel):
 class Membership(BaseModel):
     group = models.ForeignKey(
         Group,
+        related_name='memberships',
         on_delete=models.CASCADE)
     
     status = models.CharField(
@@ -37,6 +38,7 @@ class Membership(BaseModel):
 
     user = models.ForeignKey(
         'users.User',
+        related_name='memberships',
         on_delete=models.CASCADE)
 
     membership_type = models.CharField(

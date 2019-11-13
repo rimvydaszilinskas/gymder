@@ -1,3 +1,7 @@
+# Mathematical Constants for calculations
+EARTH_RADIUS = 6371
+EARTH_RADIUS_METERS = EARTH_RADIUS * 1000
+
 class Currencies:
     DKK = 'dkk'
     SEK = 'sek'

@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils.translation import ugettext as  _
+from django.utils.functional import cached_property
 
 from apps.utils.models import BaseModel, Address
 
@@ -25,3 +26,7 @@ class User(BaseModel, AbstractUser):
 
     def __str__(self):
         return self.email
+
+    @cached_property
+    def created_activities(self):
+        return self.activities.only_active()

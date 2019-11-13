@@ -108,3 +108,13 @@ Finally run the webpack listener on the project:
 ```shell
 npm run watch
 ```
+
+### Using Google Maps Api
+
+To use Google Maps API add the API KEY to environmental variables:
+
+```shell
+echo 'GOOGLE_MAPS_API_KEY=<api_key>' >> .env
+```
+
+Replace `api_key` with the key retrieved from GCP.
