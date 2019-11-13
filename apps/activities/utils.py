@@ -40,8 +40,8 @@ def find_close_to_address(address, distance=10, activity=None):
     if not latitude or not longitude:
         raise ValueError('latitude/longitude in address is not defined')
 
-    lat_variation = float(111) / float(distance)
-    lon_variation = get_degree_of_longitude(latitude) / float(distance)
+    lat_variation = float(distance) / float(111)
+    lon_variation = float(distance) / get_degree_of_longitude(latitude)
 
     max_lat = float(latitude) + lat_variation
     min_lat = float(latitude) - lat_variation
@@ -60,10 +60,11 @@ def find_close_to_address(address, distance=10, activity=None):
     
     # TODO remove me if too slow. This is just for validation
     # create an empty queryset to store the filtered results
-    filtered_activites = Activity.objects.none()
+    # filtered_activites = Activity.objects.none()
+    filtered_activities = []
     
     for activity in activities:
-        if not hasattr(activity, address):
+        if not hasattr(activity, 'address'):
             continue
         if not activity.address.latitude or not activity.address.longitude:
             continue
@@ -71,9 +72,9 @@ def find_close_to_address(address, distance=10, activity=None):
         dist = get_distance(address, activity.address, format='km')
 
         if dist <= dist:
-            filtered_activites.append(activity)
+            filtered_activities.append(activity)
     
-    return filtered_activites
+    return filtered_activities
 
 
 def find_close_to_activity(activity, distance=10):

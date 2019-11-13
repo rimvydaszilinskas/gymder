@@ -32,6 +32,8 @@ class AddressSerializer(serializers.ModelSerializer):
     street_number = serializers.CharField(read_only=True)
     city = serializers.CharField(read_only=True)
     country = serializers.CharField(read_only=True)
+    country_short = serializers.CharField(read_only=True)
+    postal_code = serializers.CharField(read_only=True)
 
     class Meta:
         model = Address
@@ -43,7 +45,9 @@ class AddressSerializer(serializers.ModelSerializer):
             'city',
             'country',
             'latitude',
-            'longitude'
+            'longitude',
+            'postal_code',
+            'country_short'
             )
 
     def validate(self, data):
@@ -113,7 +117,7 @@ class MinimalAddressSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return Address.objects.create(
             latitude=validated_data['latitude'], 
-            longitude=validated_data[longitude])
+            longitude=validated_data['longitude'])
 
 
     def save(self, **kwargs):
