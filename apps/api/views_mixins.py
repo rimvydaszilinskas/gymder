@@ -1,9 +1,13 @@
+from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404
 
 from rest_framework.response import Response
 from rest_framework import status
 
+from apps.activities.constants import RequestStatus
 from apps.activities.models import GroupActivity, IndividualActivity
+from apps.groups.constants import MembershipTypes
+from apps.groups.models import Group, Membership
 
 
 class FindActivityMixin(object):
@@ -50,3 +54,107 @@ class ActivityMixin(object):
         return Response(
             status=status.HTTP_201_CREATED,
             data=serializer.data)
+
+
+class GroupMixin(object):
+    """
+    Group mixin for retrieving groups based on rights
+
+    Use `get_group` for preview
+
+    Use `get_group_edit` for updating/deleting it
+    """
+    def get_group(self, uuid, user):
+        group = get_object_or_404(Group, uuid=uuid, is_deleted=False)
+
+        membership = group.memberships.filter(user=user, status=RequestStatus.APPROVED)
+        
+        if membership.exists() or \
+            group.user==user or \
+                (group.public==True and group.needs_approval==False ):
+            
+            return group
+
+        raise HttpResponseForbidden()
+
+    def get_group_edit(self, uuid, user):
+        group = self.get_group(uuid, user)
+
+        membership = group.memberships.filter(user=user, status=RequestStatus.APPROVED)
+
+        if group.user == user:
+            return group
+
+        if membership.exists():
+            membership = membership.first()
+
+            if membership.membership_type == MembershipTypes.ADMIN:
+                return group
+
+        raise HttpResponseForbidden()
+
+
+class MembershipMixin(object):
+    """
+    Membership mixin
+
+    Use `get_membership` if it is for previewing it.
+    Can be accessed by anyone in the group and the membership user
+
+    Use `get_membership_edit` if it is for editing its status
+    Can be accessed by group admins
+
+    Use `get_membership_delete` if it for removing it
+    Can be accessed by group admins and the membership user
+    """
+    def get_membership(self, uuid, user):
+        membership = get_object_or_404(Membership, uuid=uuid, is_deleted=False)
+
+        if membership.user == user:
+            return membership
+
+        group = membership.group
+
+        if group.public:
+            return membership
+
+        group_membership = group.memberships.filter(
+            user=user, 
+            is_deletef=False, 
+            status=RequestStatus.APPROVED)
+
+        if group_membership.exists():
+            return membership
+        
+        raise HttpResponseForbidden()
+
+    def get_membership_edit(self, uuid, user):
+        membership = self.get_membership(uuid, user)
+        group = membership.group
+
+        if membership.group.user == user:
+            return membership
+        else:
+            group_membership = group.memberships.filter(
+                user=user, is_deleted=False, status=RequestStatus.APPROVED)
+
+            if group_membership.exists() and \
+                group_membership.membership_type == MembershipTypes.ADMIN:
+                return membership
+        
+        raise HttpResponseForbidden()
+
+    def get_membership_delete(self, uuid, user):
+        membership = self.get_membership(uuid, user)
+
+        if membership.group.user == user or membership.user:
+            return membership
+        else:
+            group_membership = membership.group.memberships.filter(
+                user=user, is_deleted=False, status=RequestStatus.APPROVED)
+
+            if group_membership.exists() and \
+                group_membership.membership_type == MembershipTypes.ADMIN:
+                return membership
+
+        raise HttpResponseForbidden()
