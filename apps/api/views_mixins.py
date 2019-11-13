@@ -1,9 +1,13 @@
+from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404
 
 from rest_framework.response import Response
 from rest_framework import status
 
+from apps.activities.constants import RequestStatus
 from apps.activities.models import GroupActivity, IndividualActivity
+from apps.groups.constants import MembershipTypes
+from apps.groups.models import Group, Membership
 
 
 class FindActivityMixin(object):
@@ -50,3 +54,34 @@ class ActivityMixin(object):
         return Response(
             status=status.HTTP_201_CREATED,
             data=serializer.data)
+
+
+class GroupMixin(object):
+    def get_group(self, uuid, user):
+        group = get_object_or_404(Group, uuid=uuid, is_deleted=False)
+
+        membership = group.memberships.filter(user=user, status=RequestStatus.APPROVED)
+        
+        if membership.exists() or \
+            group.user==user or \
+                (group.public==True and group.needs_approval==False ):
+            
+            return group
+
+        raise HttpResponseForbidden()
+
+    def get_group_edit(self, uuid, user):
+        group = self.get_group(uuid, user)
+
+        membership = group.memberships.filter(user=user, status=RequestStatus.APPROVED)
+
+        if group.user == user:
+            return group
+
+        if membership.exists():
+            membership = membership.first()
+
+            if membership.membership_type == MembershipTypes.ADMIN:
+                return group
+
+        raise HttpResponseForbidden()

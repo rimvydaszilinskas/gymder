@@ -22,6 +22,10 @@ from apps.activities.serializers import (
     UserRequestSerializer
 )
 from apps.activities.utils import can_edit_activity, can_view_activity, find_close_to_address
+from apps.groups.models import Group
+from apps.groups.serializer import (
+    GroupSerializer,
+)
 from apps.utils.models import Tag
 from apps.utils.serializers import (
     TagSerializer,
@@ -30,7 +34,11 @@ from apps.utils.serializers import (
 )
 from apps.utils.views_mixins import PutPatchMixin
 
-from .views_mixins import FindActivityMixin, ActivityMixin
+from .views_mixins import (
+    FindActivityMixin,
+    ActivityMixin,
+    GroupMixin
+)
 
 
 class IndividualActivitiesView(ActivityMixin, APIView):
@@ -229,3 +237,68 @@ class UserAddressView(APIView):
         return Response(
             status=status.HTTP_201_CREATED, 
             data=serializer.data)
+
+
+class UserGroupView(ListAPIView):
+    """
+    User group view
+    """
+    serializer_class = GroupSerializer
+
+    def get_queryset(self):
+        groups = Group.objects.filter(
+            is_deleted=False).filter(
+                Q(user=self.request.user) | Q(
+                    memberships__user=self.request.user, 
+                    memberships__status=RequestStatus.APPROVED)
+            )
+        
+        return groups
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+
+        serializer.is_valid(raise_exception=True)
+
+        serializer.save(user=request.user)
+
+        return Response(
+            status=status.HTTP_201_CREATED, 
+            data=serializer.data)
+
+
+class GroupView(GroupMixin, PutPatchMixin, APIView):
+    """
+    User group view
+    """
+    serializer_class = GroupSerializer
+
+    def get(self, request, *args, **kwargs):
+        group = self.get_group(uuid=kwargs['uuid'], user=request.user)
+
+        serializer = self.serializer_class(group)
+
+        return Response(data=serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        group = self.get_group_edit(uuid=kwargs['uuid'], user=request.user)
+
+        serializer = self.serializer_class(group, data=request.data)
+
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(
+            status=status.HTTP_200_OK,
+            data=serializer.data)
+
+    def delete(self, request, *args, **kwargs):
+        group = self.get_group(uuid=kwargs['uuid'], user=request.user)
+        
+        if group.user != request.user:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+        group.is_deleted = True
+        group.save(update_fields=['is_deleted'])
+
+        return Response(status=status.HTTP_200_OK)
