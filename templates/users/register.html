@@ -2,10 +2,56 @@
 
 {% block content %}
 <div class="container">
-    <div class="container">
-        <div class="col s12 offset-m2 m8">
-            <h1>Hello</h1>
+         <div class="col s12 offset-m2 m8">
+            <h1>Sign Up</h1>
+            <form class="site-form" action="{% url 'users:register'%}" method="post">
+                {% csrf_token %}
+              <div class="row">
+                <form class="col s12">
+                  <div class="row">
+                    <div class="input-field col s6">
+                      <input id="first_name" type="text" class="validate" required>
+                      <label for="first_name">First Name</label>
+                    </div>
+                    <div class="input-field col s6">
+                      <input id="last_name" type="text" class="validate" required>
+                      <label for="last_name">Last Name</label>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="input-field col s12">
+                      <input id="password" type="password" class="validate" required>
+                      <label for="password">Password</label>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="input-field col s12">
+                      <input id="password" type="password" class="validate" required>
+                      <label for="password">Repeat Password</label>
+                  </div>
+                  </div>
+                  <div class="row">
+                    <div class="input-field col s12">
+                      <input id="email" type="email" name="email" class="validate" required>
+                      <label for="email">Email</label>
+                    </div>
+                  </div>
+                  <!--
+                  <p>
+                  <label>
+                    <input type="checkbox" class="filled-in" name="terms"/>
+                    <span>I agree with the terms and conditions</span>
+                  </label>
+                  </p>
+                  -->
+                  <div class="row">
+                    <div class="input-field col s12">
+                        <button class="waves-effect waves-light btn-small" type="submit">Sign Up</button>
+                    </div>
+                  </div>
+                </form>
+                </div>
+        </form>
         </div>
-    </div>
 </div>
 {% endblock  %}
