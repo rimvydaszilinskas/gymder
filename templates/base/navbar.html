@@ -1,10 +1,73 @@
+<ul id="profile-dropdown" class="dropdown-content">
+    <li>
+        <a href="{% url 'users:profile' %}">Profile</a>
+    </li>
+    <li>
+        <a href="{% url 'users:profile' %}">Settings</a>
+    </li>
+    <li>
+        <a href="{% url 'users:logout' %}">Logout</a>
+    </li>
+</ul>
+
+<ul class="sidenav" id="mobile-nav">
+    <li>
+        <a href="#">Home</a>
+    </li>
+    {% if user.is_authenticated %}
+        <li>
+            <a href="#">Profile</a>
+        </li>
+        <li>
+            <a href="#">Groups</a>
+        </li>
+        <li>
+            <a href="#">Activities</a>
+        </li>
+        <li>
+            <a href="{% url 'users:logout' %}">Logout</a>
+        </li>
+    {% else %}
+        <li>
+            <a href="{% url 'users:register' %}">Register</a>
+        </li>
+        <li>
+            <a href="{% url 'users:login' %}">Login</a>
+        </li>
+    {% endif %}
+</ul>
+
 <nav>
     <div class="nav-wrapper">
-      <a href="#" class="brand-logo">Logo</a>
-      <ul id="nav-mobile" class="right hide-on-med-and-down">
-        <li><a href="sass.html">Sass</a></li>
-        <li><a href="badges.html">Components</a></li>
-        <li><a href="collapsible.html">JavaScript</a></li>
-      </ul>
+        <a href="/" class="brand-logo">Logo</a>
+        <a href="#" data-target="mobile-nav" class="sidenav-trigger">
+            <i class="material-icons">menu</i>
+        </a>
+
+        <ul id="nav-mobile" class="right hide-on-med-and-down">
+            <li>
+                <a href="#">Home</a>
+            </li>
+            {% if user.is_authenticated %}
+                <li>
+                    <a href="#">Groups</a>
+                </li>
+                <li>
+                    <a href="#">Groups</a>
+                </li>
+                <li>
+                    <a href="#">Activities</a>
+                </li>
+                <li>
+                    <a class="dropdown-trigger center" href="#!" data-target="profile-dropdown">
+                        {{ user.email }} <i class="material-icons right">arrow_drop_down</i>
+                    </a>
+                </li>
+            {% else %}
+                <li>
+                    <a href="{% url 'users:login' %}">Login</a>
+                </li>
+            {% endif %}
+        </ul>
     </div>
 </nav>
