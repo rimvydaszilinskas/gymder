@@ -13,6 +13,12 @@ class PostAdmin(admin.ModelAdmin):
         'uuid'
     ]
 
+    raw_id_fields = [
+        'user',
+        'group',
+        'activity'
+    ]
+
 
 class CommentAdmin(admin.ModelAdmin):
     readonly_fields = [
@@ -22,6 +28,11 @@ class CommentAdmin(admin.ModelAdmin):
     list_fields = [
         '__str__',
         'uuid'
+    ]
+
+    raw_id_fields = [
+        'user',
+        'post'
     ]
 
 

@@ -17,6 +17,10 @@ class UserAdmin(admin.ModelAdmin):
         'uuid'
     ]
 
+    raw_id_fields = [
+        'address'
+    ]
+
 
 class ApiToken(Token):
     """ Proxy the token model to display it under users """

@@ -1,4 +1,4 @@
-from django.http import HttpResponseForbidden
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
 
 from rest_framework.response import Response
@@ -31,6 +31,14 @@ class FindActivityMixin(object):
         if activity.user == user:
             return activity
 
+        request = activity.requests.filter(
+            user=user,
+            is_deleted=False,
+            status__in=[RequestStatus.PENDING, RequestStatus.APPROVED])
+
+        if request.exists():
+            return activity
+
         group = activity.group
 
         if group is not None:
@@ -45,7 +53,7 @@ class FindActivityMixin(object):
             if membership.exists():
                 return activity
 
-        raise HttpResponseForbidden()
+        raise PermissionDenied()
 
 
 class ActivityMixin(object):
@@ -96,7 +104,7 @@ class GroupMixin(object):
             
             return group
 
-        raise HttpResponseForbidden()
+        raise PermissionDenied()
 
     def get_group_edit(self, uuid, user):
         group = self.get_group(uuid, user)
@@ -112,7 +120,7 @@ class GroupMixin(object):
             if membership.membership_type == MembershipTypes.ADMIN:
                 return group
 
-        raise HttpResponseForbidden()
+        raise PermissionDenied()
 
 
 class MembershipMixin(object):
@@ -163,7 +171,7 @@ class MembershipMixin(object):
                 group_membership.membership_type == MembershipTypes.ADMIN:
                 return membership
         
-        raise HttpResponseForbidden()
+        raise PermissionDenied()
 
     def get_membership_delete(self, uuid, user):
         membership = self.get_membership(uuid, user)
@@ -178,7 +186,7 @@ class MembershipMixin(object):
                 group_membership.membership_type == MembershipTypes.ADMIN:
                 return membership
 
-        raise HttpResponseForbidden()
+        raise PermissionDenied()
 
 
 class PostMixin(object):
@@ -199,7 +207,7 @@ class PostMixin(object):
                     status=RequestStatus.APPROVED)
                 
                 if not membership.exists() and group.user != user:
-                    raise HttpResponseForbidden()
+                    raise PermissionDenied()
             elif activity is not None:
                 if not activity.public:
                     activity_group = activity.group
@@ -211,13 +219,13 @@ class PostMixin(object):
                             status=RequestStatus.APPROVED)
                         
                         if not membership.exists() and activity_group != user:
-                            raise HttpResponseForbidden()
+                            raise PermissionDenied()
                     elif activity.user != user and \
                         not activity.requests.filter(
                             user=user, 
                             status__in=[RequestStatus.APPROVED, RequestStatus.PENDING], 
                             is_deleted=False).exists():
-                        raise HttpResponseForbidden()
+                        raise PermissionDenied()
 
         return post
     
@@ -236,7 +244,7 @@ class PostMixin(object):
                     membership_type=MembershipTypes.ADMIN)
                 
                 if not membership.exists() and group.user != user:
-                    raise HttpResponseForbidden()
+                    raise PermissionDenied()
             elif activity is not None:
                 if activity.user != user:
                     activity_group = activity.group
@@ -249,5 +257,5 @@ class PostMixin(object):
                             membership_type=MembershipTypes.ADMIN)
                         
                         if not memberships.exists() and activity_group.user != user:
-                            raise HttpResponseForbidden()
+                            raise PermissionDenied()
         return post

@@ -13,7 +13,8 @@ from apps.activities.constants import ActivityFormat, RequestStatus
 from apps.activities.models import (
     Activity,
     GroupActivity,
-    IndividualActivity
+    IndividualActivity,
+    Request
 )
 from apps.activities.serializers import (
     ActivitySerializer, 
@@ -53,6 +54,7 @@ from .views_mixins import (
 )
 
 # Activities views
+
 
 class IndividualActivitiesView(ActivityMixin, APIView):
     """
@@ -203,6 +205,104 @@ class NearbyActivitiesView(APIView):
             return Response(status=status.HTTP_200_OK, data=serializer.data)
 
         return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+class ActivityRequestView(FindActivityMixin, APIView):
+    """
+    Activity request view for getting activity's requests and creating/deleting
+    """
+    serializer_class = UserRequestSerializer
+
+    def get(self, request, *args, **kwargs):
+        activity = self.get_activity(uuid=kwargs['uuid'], user=request.user)
+
+        requests = activity.requests.filter(is_deleted=False)
+
+        serializer = self.serializer_class(requests, many=True)
+
+        return Response(data=serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        activity = self.get_activity(uuid=kwargs['uuid'], user=request.user)
+
+        if activity.user == request.user:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        user_request, created = Request.objects.get_or_create(
+            user=request.user,
+            activity=activity,
+            is_deleted=False)
+
+        if not created:
+            user_request.is_deleted = True
+            user_request.save(update_fields=['is_deleted'])
+            return Response()
+
+        user_request.status = activity.default_status
+        user_request.save(update_fields=['status'])
+
+        serializer = self.serializer_class(user_request)
+
+        return Response(
+            data=serializer.data,
+            status=status.HTTP_201_CREATED)
+
+
+class RequestView(FindActivityMixin, APIView):
+    """
+    Request view for activity admin
+
+    POST/DELETE only available for activity owner
+    """
+    serializer_class = UserRequestSerializer
+
+    def get(self, request, *args, **kwargs):
+        activity = self.get_activity(uuid=kwargs['uuid'], user=request.user)
+
+        user_request = get_object_or_404(
+            Request,
+            uuid=kwargs['request_uuid'],
+            activity=activity,
+            is_deleted=False)
+
+        serializer = self.serializer_class(user_request)
+
+        return Response(data=serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        activity = self.get_activity(uuid=kwargs['uuid'], user=request.user)
+
+        can_edit_activity(activity, request.user, raise_exception=True)
+
+        user_request = get_object_or_404(
+            Request,
+            uuid=kwargs['request_uuid'],
+            activity=activity,
+            is_deleted=False)
+
+        user_request.status = RequestStatus.APPROVED
+        user_request.save(update_fields=['status'])
+
+        serializer = self.serializer_class(user_request)
+
+        return Response(data=serializer.data)
+
+    def delete(self, request, *args, **kwargs):
+        activity = self.get_activity(uuid=kwargs['uuid'], user=request.user)
+        can_edit_activity(activity, request.user, raise_exception=True)
+
+        user_request = get_object_or_404(
+            Request,
+            uuid=kwargs['request_uuid'],
+            activity=activity,
+            is_deleted=False)
+
+        user_request.status = RequestStatus.DENIED
+        user_request.save(update_fields=['status'])
+
+        serializer = self.serializer_class(user_request)
+
+        return Response(data=serializer.data)
 
 # User views
 
@@ -514,7 +614,7 @@ class PostView(PostMixin, PutPatchMixin, APIView):
         post = get_object_or_404(Post, uuid=kwargs['uuid'], is_deleted=False)
 
         if post.user != request.user:
-            raise HttpResponseForbidden()
+            return HttpResponseForbidden()
 
         serializer = self.serializer_class(post, data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -560,7 +660,7 @@ class CommentView(PostMixin, APIView):
         comment = get_object_or_404(Comment, uuid=kwargs['comment_uuid'])
 
         if comment.user != request.user:
-            raise HttpResponseForbidden()
+            return HttpResponseForbidden()
 
         comment.is_deleted = True
         comment.save(update_fields=['is_deleted'])

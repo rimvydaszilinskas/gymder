@@ -11,7 +11,8 @@ urlpatterns = [
     url(r'^activities/(?P<uuid>\w+)/tags/$', views.ActivityTagsView.as_view(), name='activity-tags'),
     url(r'^activities/(?P<uuid>\w+)/address/$', views.RegisterActivityAddress.as_view(), name='activity-address'),
     url(r'^activities/(?P<uuid>\w+)/posts/$', views.ActivityPostView.as_view(), name='activity-posts'),
-
+    url(r'^activities/(?P<uuid>\w+)/requests/$', views.ActivityRequestView.as_view(), name='activity-requests'),
+    url(r'^activities/(?P<uuid>\w+)/requests/(?P<request_uuid>\w+)/$', views.RequestView.as_view(), name='requests'),
     # Communications paths
     url(r'^communication/post/(?P<uuid>\w+)/$', views.PostView.as_view(), name='posts'),
     url(r'^communication/post/(?P<uuid>\w+)/comments/$', views.CommentView.as_view(), name='add-comment'),

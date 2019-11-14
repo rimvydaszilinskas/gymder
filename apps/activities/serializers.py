@@ -1,8 +1,5 @@
 from rest_framework import serializers
 
-import uuid
-
-from apps.users.models import User
 from apps.users.serializers import UserSerializer
 from apps.utils.constants import Currencies
 from apps.utils.models import Tag
@@ -13,7 +10,6 @@ from apps.utils.serializers import (
 
 from .models import (
     ActivityType,
-    Activity,
     GroupActivity,
     IndividualActivity,
     Request
@@ -110,6 +106,12 @@ class IndividualActivitySerializer(serializers.ModelSerializer):
             activity_type_object, created = ActivityType.objects.get_or_create(title=activity_type_title)
 
             instance.activity_type = activity_type_object
+
+        if tags is not None:
+            for tag in tags:
+                tag_object, created = Tag.objects.get_or_create(title=tag.get('title'))
+
+                instance.tags.add(tag_object)
 
         return instance
 

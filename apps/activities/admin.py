@@ -1,7 +1,6 @@
 from django.contrib import admin
 
 from .models import (
-    Activity,
     ActivityType,
     GroupActivity,
     IndividualActivity,
@@ -15,7 +14,19 @@ class ActivityTypeAdmin(admin.ModelAdmin):
 
     list_display = [
         '__str__',
-        'uuid'
+        'uuid',
+        'approved',
+        'is_deleted',
+    ]
+
+    list_filter = [
+        'is_deleted',
+        'approved'
+    ]
+
+    search_fields = [
+        'uuid',
+        'title'
     ]
 
 
@@ -26,7 +37,16 @@ class ActivityAdmin(admin.ModelAdmin):
 
     list_display = [
         '__str__',
-        'uuid'
+        'uuid',
+        'public',
+        'time'
+    ]
+
+    raw_id_fields = [
+        'address',
+        'group',
+        'activity_type',
+        'user'
     ]
 
 
@@ -37,7 +57,14 @@ class RequestAdmin(admin.ModelAdmin):
 
     list_display = [
         '__str__',
-        'uuid'
+        'uuid',
+        'status',
+        'is_deleted'
+    ]
+
+    raw_id_fields = [
+        'activity',
+        'user'
     ]
 
 

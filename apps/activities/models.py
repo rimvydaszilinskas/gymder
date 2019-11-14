@@ -19,6 +19,11 @@ class ActivityType(BaseModel):
     title = models.CharField(max_length=100)
     approved = models.BooleanField(default=False)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=('title',))
+        ]
+
     def __str__(self):
         return self.title
 
@@ -41,6 +46,7 @@ class Activity(BaseModel):
         Address,
         related_name='activities',
         null=True,
+        blank=True,
         on_delete=models.DO_NOTHING)
 
     group = models.ForeignKey(
@@ -87,6 +93,16 @@ class Activity(BaseModel):
             except:
                 activity = None
         return activity
+
+    @cached_property
+    def default_status(self):
+        """
+        Default status for activity request when joining
+        """
+        if self.needs_approval:
+            return RequestStatus.PENDING
+        else:
+            return RequestStatus.APPROVED
 
 
 class IndividualActivity(Activity):
@@ -142,3 +158,7 @@ class Request(BaseModel):
         default=RequestStatus.PENDING)
     
     message = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return '{user} - {activity}'.format(
+            user=str(self.user), activity=str(self.activity))

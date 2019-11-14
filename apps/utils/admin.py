@@ -13,5 +13,21 @@ class AddressAdmin(admin.ModelAdmin):
         'uuid'
     ]
 
+    raw_id_fields = [
+        'user'
+    ]
+
+
+class TagAdmin(admin.ModelAdmin):
+    readonly_fields = [
+        'uuid'
+    ]
+
+    list_display = [
+        '__str__',
+        'uuid'
+    ]
+
+
 admin.site.register(Address, AddressAdmin)
-admin.site.register(Tag, AddressAdmin)
+admin.site.register(Tag, TagAdmin)
