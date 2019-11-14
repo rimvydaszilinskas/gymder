@@ -143,6 +143,10 @@ class ActivityTagsView(APIView):
                 if tag_uuid:
                     tag_db, created = Tag.objects.get_or_create(uuid=tag_uuid)
                 else:
+                    if title is None:
+                        continue
+
+                    title = str(title)
                     tag_db, created = Tag.objects.get_or_create(title=title)
 
                 activity.tags.add(tag_db)

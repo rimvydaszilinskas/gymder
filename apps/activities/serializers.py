@@ -132,8 +132,7 @@ class IndividualActivitySerializer(serializers.ModelSerializer):
         
         if activity_type is not None:
             activity_type_title = activity_type.get('title')
-            
-            activity_type_object, created = ActivityType.objects.get_or_create(title=activity_type_title)
+            activity_type_object, created = ActivityType.objects.get_or_create(title=activity_type_title.lower())
 
             instance.activity_type = activity_type_object
             instance.save(update_fields=['activity_type'])
