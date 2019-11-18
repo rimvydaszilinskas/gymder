@@ -9,6 +9,7 @@ from apps.activities.models import GroupActivity, IndividualActivity
 from apps.communication.models import Post
 from apps.groups.constants import MembershipTypes
 from apps.groups.models import Group, Membership
+from apps.utils.models import Address
 
 
 class FindActivityMixin(object):
@@ -77,6 +78,16 @@ class ActivityMixin(object):
 
         serializer.is_valid()
         instance = serializer.save(user=request.user)
+
+        # check if address uuid is attached
+        if 'address_uuid' in request.data:
+            try:
+                address = Address.objects.filter(uuid=request.data['address_uuid'])
+
+                instance.address = address
+                instance.save(update_fields=['address'])
+            except:
+                pass
 
         serializer = self.serializer_class(instance)
 

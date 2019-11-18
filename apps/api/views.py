@@ -670,3 +670,11 @@ class CommentView(PostMixin, APIView):
         comment.save(update_fields=['is_deleted'])
 
         return Response(status=status.HTTP_200_OK)
+
+
+# Utility views
+
+
+class GetAddresses(APIView):
+    def post(self, request, *args, **kwargs):
+        pass

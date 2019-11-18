@@ -20,7 +20,8 @@ urlpatterns = [
     url(r'^api/', include(('apps.api.urls', 'api'), namespace='api')),
     
     url(r'^admin/', admin.site.urls),
-    url(r'', include(('apps.pages.urls', 'pages'), namespace='pages')),
     url(r'^users/', include(('apps.users.urls', 'users'), namespace='users')),
+    url(r'^activities/', include(('apps.activities.urls', 'activities'), namespace='activities')),
+    url(r'', include(('apps.pages.urls', 'pages'), namespace='pages')),
     
 ]

@@ -13,6 +13,7 @@ urlpatterns = [
     url(r'^activities/(?P<uuid>\w+)/posts/$', views.ActivityPostView.as_view(), name='activity-posts'),
     url(r'^activities/(?P<uuid>\w+)/requests/$', views.ActivityRequestView.as_view(), name='activity-requests'),
     url(r'^activities/(?P<uuid>\w+)/requests/(?P<request_uuid>\w+)/$', views.RequestView.as_view(), name='requests'),
+    
     # Communications paths
     url(r'^communication/post/(?P<uuid>\w+)/$', views.PostView.as_view(), name='posts'),
     url(r'^communication/post/(?P<uuid>\w+)/comments/$', views.CommentView.as_view(), name='add-comment'),
@@ -33,4 +34,6 @@ urlpatterns = [
     url(r'^user/address/$', views.UserAddressView.as_view(), name='user-address'),
     url(r'^user/memberships/$', views.UserMembershipsView.as_view(), name='user-memberships'),
 
+    # Utilities paths
+    # url(r'^utils/addresses/$', None, name='get-addresses'),
 ]
