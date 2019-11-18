@@ -6,6 +6,7 @@ module.exports = {
     context: __dirname,
     entry: {
         'index': './src/index.js',
+        'view_activity': './src/activities/preview.js',
         'create_activity': './src/activities/create.js',
     },
     output: {

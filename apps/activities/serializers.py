@@ -63,12 +63,12 @@ class ActivitySerializer(serializers.ModelSerializer):
 
 class IndividualActivitySerializer(serializers.ModelSerializer):
     uuid = serializers.UUIDField(format='hex', read_only=True)
-    title = serializers.CharField(max_length=100)
-    description = serializers.CharField(max_length=500, required=False)
+    title = serializers.CharField(max_length=100, required=True)
+    description = serializers.CharField(max_length=500, required=False, allow_blank=True)
     time = serializers.DateTimeField()
     duration = serializers.IntegerField(min_value=5, max_value=600)
     address = AddressSerializer(required=False, many=False)
-    activity_type = ActivityTypeSerializer(many=False, required=True)
+    activity_type = ActivityTypeSerializer(many=False, required=False)
     public = serializers.BooleanField(required=False)
     needs_approval = serializers.BooleanField(required=False)
     user = UserSerializer(read_only=True)
@@ -161,7 +161,7 @@ class IndividualActivitySerializer(serializers.ModelSerializer):
         return self.instance
 
 
-class GroupActivitySerializer(ActivityTypeSerializer):
+class GroupActivitySerializer(IndividualActivitySerializer, serializers.ModelSerializer):
     max_attendees = serializers.IntegerField(min_value=2, max_value=20, required=False)
     price = serializers.DecimalField(max_digits=12, decimal_places=4, coerce_to_string=False, required=False)
     currency = serializers.CharField(max_length=30, required=False)
@@ -185,7 +185,6 @@ class GroupActivitySerializer(ActivityTypeSerializer):
         tags = validated_data.pop('tags', None)
         activity_type = validated_data.pop('activity_type', None)
         address = validated_data.pop('address', None)
-
         instance = GroupActivity(**validated_data)
 
         if activity_type is not None:
@@ -202,7 +201,6 @@ class GroupActivitySerializer(ActivityTypeSerializer):
             user = kwargs.get('user', None)
             if not user:
                 raise ValueError('user has to be in kwargs')
-
             self.instance = self.create(self.validated_data)
             self.instance.user = user
             self.instance.save()

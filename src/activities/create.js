@@ -20,11 +20,13 @@ class CreateActivity extends React.Component {
                 needs_approval: false,
                 public: true,
                 max_attendees: 5,
-                price: 0
+                price: 0,
+                duration: 60
             },
             group_activity: false,
             address_validated: false,
-            address_uuid: null
+            address_uuid: null,
+            errors: null
         };
 
         this.handleLabelInput = this.handleLabelInput.bind(this);
@@ -39,6 +41,7 @@ class CreateActivity extends React.Component {
         this.handleGroupInput = this.handleGroupInput.bind(this);
         this.handleAttendeeInput = this.handleAttendeeInput.bind(this);
         this.handlePriceInput = this.handlePriceInput.bind(this);
+        this.handleDurationInput = this.handleDurationInput.bind(this);
     }
 
     handleLabelInput(e) {
@@ -79,7 +82,21 @@ class CreateActivity extends React.Component {
         let form = this.state.form;
         form.address = e.target.value;
         this.setState({
-            address_validated: false,
+            // address_validated: false,
+            form: form
+        });
+    }
+
+    handleDurationInput(e) {
+        let value = parseInt(e.target.value);
+
+        if (value > 600) {
+            return;
+        }
+
+        let form = this.state.form;
+        form.duration = e.target.value;
+        this.setState({
             form: form
         });
     }
@@ -144,8 +161,52 @@ class CreateActivity extends React.Component {
     }
 
     handleFormSubmit(e) {
+        // this is the final method for the view
+        // only execute this if the address is verified with the backend
+        // check to see if all the values are not null
         e.preventDefault();
 
+        // decide on the url based on group/individual activity
+        let url = this.state.group_activity ? '/api/activities/group/' : '/api/activities/individual/';
+        
+        // pull out form from the state to modify it before request
+        // use spread operator to copy the object
+        let form = {...this.state.form};
+
+        // attach address uuid
+        form.address_uuid = this.state.address_uuid;
+        
+        // change the date and time format to datetime
+        let date = form.date;
+        let time = form.time;
+        let datetime = `${date}T${time}:00Z`;
+                
+        delete form.address;
+        delete form.date;
+
+        form.time = datetime;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: JSON.stringify(form)
+        }).then(response => {
+            if (response.ok) {
+                response.json().then(responseJSON => {
+                    window.location.replace(`/activities/${responseJSON.uuid}/?created=true`);
+                }).catch(e => {
+                });
+            } else {
+                alert('There were errors');
+            }
+        }).catch(e => {
+            console.log(e);
+            alert('Something went really wrong!')
+        });        
     }
 
     handleApprovalInput() {
@@ -205,7 +266,7 @@ class CreateActivity extends React.Component {
                         <div className="row">
                             <div className="col m2 hide-on-small-only"></div>
                             <div className="col m8 s12">
-                                <form ref="form" onSubmit={()=>{}}>
+                                <form ref="form" onSubmit={this.handleFormSubmit}>
                                     <div className="row">
                                         <div className="input-field">
                                             <input type="text" className="validate center" id="title" value={this.state.form.title} onChange={this.handleLabelInput} required></input>
@@ -223,13 +284,20 @@ class CreateActivity extends React.Component {
                                     <h5>Activity logistics</h5>
 
                                     <div className="row">
-                                        <div className="col m6 input-field">
-                                            <input type="date" className="center datepicker" value={this.state.form.date} onChange={this.handleDateInput} required></input>
+                                        <div className="col m4 input-field">
+                                            <input type="date" id="date" className="center datepicker" value={this.state.form.date} onChange={this.handleDateInput} required></input>
                                             <label htmlFor="date">Date</label>
                                         </div>
-                                        <div className="col s6 input-field">
-                                            <input type="time" className="center timepicker" value={this.state.form.time} onChange={this.handleTimeInput} required></input>
+                                        <div className="col s4 input-field">
+                                            <input type="time" id="time" className="center timepicker" value={this.state.form.time} onChange={this.handleTimeInput} required></input>
                                             <label htmlFor="time">Time</label>
+                                        </div>
+                                        <div className="col s4 input-field">
+                                            <input type="number" id="duration" className="center" min="5" max="600" value={this.state.form.duration} onChange={this.handleDurationInput} required></input>
+                                            <label htmlFor="duration">Duration</label>
+                                            <span className="helper-text" data-error="wrong" data-success="right">
+                                                Duration is in minutes
+                                            </span>
                                         </div>
                                     </div>
 
@@ -298,7 +366,7 @@ class CreateActivity extends React.Component {
                                     </div>
 
                                     <div className="row center">
-                                        <button className="btn" onClick={this.handleFormSubmit} disabled={!this.state.address_validated}>Continue</button>
+                                        <button className="btn" type="submit" disabled={!this.state.address_validated}>Continue</button>
                                     </div>
                                 </form>
                             </div>
