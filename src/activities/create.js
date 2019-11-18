@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDom from 'react-dom';
+import getCookie from '../utils/get_cookie';
 
 
 class CreateActivity extends React.Component {
@@ -22,7 +23,8 @@ class CreateActivity extends React.Component {
                 price: 0
             },
             group_activity: false,
-            address_validated: true
+            address_validated: false,
+            address_uuid: null
         };
 
         this.handleLabelInput = this.handleLabelInput.bind(this);
@@ -77,13 +79,68 @@ class CreateActivity extends React.Component {
         let form = this.state.form;
         form.address = e.target.value;
         this.setState({
+            address_validated: false,
             form: form
         });
     }
 
     handleAddressValidation(e) {
+        // lookup valid addresses and then cycle through them for the user to confirm
+        // if the address is confirmed by the user, the human representation is added to the form and
+        // the uuid is added to be sent to the server
         e.preventDefault();
 
+        if (this.state.address_validated) {
+            alert('Address already validated');
+            return;
+        }
+
+        fetch('/api/utils/addresses/', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: JSON.stringify({
+                address: this.state.form.address
+            })
+        }).then(response => {
+            if(response.status === 200) {
+                response.json().then(responseJSON => {
+                    if (Array.isArray(responseJSON)){
+                        if(responseJSON.length === 0) {
+                            alert('Cannot find address')
+                            return;
+                        }
+
+                        responseJSON.some(resp => {
+                            let answer = confirm(`Is the address correct: ${resp.address}?`);
+                            if (answer) {
+                                // if user selects this address add the uuid as the correct choice
+                                let form = this.state.form;
+
+                                form.address = resp.address;
+
+                                this.setState({
+                                    address_uuid: resp.uuid,
+                                    address_validated: true,
+                                    form: form
+                                });
+                                return true;
+                            }
+                        });
+                    } else {
+                        throw Error('Not an array')
+                    }
+                });
+            } else {
+                alert('Something went wrong... Try again!')
+            }
+        }).catch(e => {
+            alert('An error has occured!');
+            console.log(e);
+        });
     }
 
     handleFormSubmit(e) {

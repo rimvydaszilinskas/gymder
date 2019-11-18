@@ -35,5 +35,5 @@ urlpatterns = [
     url(r'^user/memberships/$', views.UserMembershipsView.as_view(), name='user-memberships'),
 
     # Utilities paths
-    # url(r'^utils/addresses/$', None, name='get-addresses'),
+    url(r'^utils/addresses/$', views.GetSimilarAddressesView.as_view(), name='get-addresses'),
 ]

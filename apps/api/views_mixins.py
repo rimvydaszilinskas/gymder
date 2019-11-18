@@ -166,7 +166,7 @@ class MembershipMixin(object):
         if group_membership.exists():
             return membership
         
-        raise HttpResponseForbidden()
+        raise PermissionDenied()
 
     def get_membership_edit(self, uuid, user):
         membership = self.get_membership(uuid, user)

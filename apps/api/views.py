@@ -2,7 +2,7 @@ from datetime import datetime
 
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from django.http import Http404, HttpResponseForbidden
+from django.http import Http404, HttpResponseForbidden, HttpResponseBadRequest
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -37,6 +37,7 @@ from apps.groups.serializer import (
     UserMembershipSerializer
 )
 from apps.users.models import User
+from apps.utils.location_utils import get_similar_addresses
 from apps.utils.models import Tag
 from apps.utils.serializers import (
     TagSerializer,
@@ -675,6 +676,15 @@ class CommentView(PostMixin, APIView):
 # Utility views
 
 
-class GetAddresses(APIView):
+class GetSimilarAddressesView(APIView):
+    serializer_class = AddressSerializer
+
     def post(self, request, *args, **kwargs):
-        pass
+        if 'address' not in request.data:
+            return HttpResponseBadRequest()
+
+        addresses = get_similar_addresses(request.data['address'])
+
+        serializer = AddressSerializer(addresses, many=True)
+
+        return Response(data=serializer.data)

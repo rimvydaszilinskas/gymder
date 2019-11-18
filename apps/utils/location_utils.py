@@ -60,7 +60,7 @@ def _geocode_many_addresses(address):
     # This function returns all the addresses found based on query
     try:
         geocoded = settings.GOOGLE_MAPS_API.geocode(address)
-
+        print(geocoded)
         return geocoded
     except Exception as e:
         print(e)
@@ -122,6 +122,9 @@ def create_address_from_address(address):
 
 
 def get_similar_addresses(address):
+    """
+    Return all query matches for address input
+    """
     geocoded = _geocode_many_addresses(address)
 
     addresses = []
@@ -129,7 +132,7 @@ def get_similar_addresses(address):
     if isinstance(geocoded, list):
         for _geocoded in geocoded:
             addr = build_address(_geocoded)
-            
+            addr.save()
             addresses.append(addr)
 
     return addresses
