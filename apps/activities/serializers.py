@@ -16,6 +16,21 @@ from .models import (
 )
 
 
+class RequestSerializer(serializers.ModelSerializer):
+    """ Used for returning attendees to event """
+    uuid = serializers.UUIDField(format='hex', read_only=True)
+    user = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Request
+        fields = (
+            'uuid',
+            'status',
+            'activity',
+            'message'
+        )
+
+
 class ActivityTypeSerializer(serializers.ModelSerializer):
     uuid = serializers.UUIDField(format='hex', read_only=True)
     title = serializers.CharField(max_length=100)
@@ -72,7 +87,14 @@ class IndividualActivitySerializer(serializers.ModelSerializer):
     public = serializers.BooleanField(required=False)
     needs_approval = serializers.BooleanField(required=False)
     user = UserSerializer(read_only=True)
+    requests = RequestSerializer(many=True)
     tags = TagSerializer(many=True, required=False)
+    formatted_year = serializers.DateTimeField(format='%Y', source='time', read_only=True)
+    formatted_month_long = serializers.DateTimeField(format='%B', source='time', read_only=True)
+    formatted_month_short = serializers.DateTimeField(format='%b', source='time', read_only=True)
+    formatted_day_short = serializers.DateTimeField(format='%a', source='time', read_only=True)
+    formatted_day_long = serializers.DateTimeField(format='%A', source='time', read_only=True)
+    formatted_day_number = serializers.DateTimeField(format='%d', source='time', read_only=True)
 
     class Meta:
         model = IndividualActivity
@@ -87,7 +109,14 @@ class IndividualActivitySerializer(serializers.ModelSerializer):
             'public',
             'needs_approval',
             'user',
-            'tags'
+            'tags',
+            'requests',
+            'formatted_year',
+            'formatted_month_long',
+            'formatted_month_short',
+            'formatted_day_long',
+            'formatted_day_short',
+            'formatted_day_number'
         )
 
     def create(self, validated_data):
@@ -210,6 +239,7 @@ class GroupActivitySerializer(IndividualActivitySerializer, serializers.ModelSer
         return self.instance
 
 
+
 class UserRequestSerializer(serializers.ModelSerializer):
     """ Used for returning events to user view page"""
     uuid = serializers.UUIDField(format='hex', read_only=True)
@@ -221,19 +251,4 @@ class UserRequestSerializer(serializers.ModelSerializer):
             'uuid',
             'status',
             'activity',
-        )
-
-
-class RequestSerializer(serializers.ModelSerializer):
-    """ Used for returning attendees to event """
-    uuid = serializers.UUIDField(format='hex', read_only=True)
-    user = UserSerializer(read_only=True)
-
-    class Meta:
-        model = Request
-        fields = (
-            'uuid',
-            'status',
-            'activity',
-            'message'
         )

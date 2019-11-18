@@ -13,6 +13,9 @@ class ActivityView(PageViewMixin):
     BUNDLE_NAME = 'view_activity'
 
     def create_js_context(self, request, *args, **kwargs):
+        # capture the created tag. Might show more info on the first run
+        created = request.GET.get('created', None)
+
         activity = get_object_or_404(Activity, uuid=kwargs['uuid'])
 
         can_view_activity(activity, request.user, raise_exception=True)
@@ -29,7 +32,9 @@ class ActivityView(PageViewMixin):
 
         return {
             'user': user_serializer.data,
-            'activity': serializer.data
+            'activity': serializer.data,
+            'created': created == 'true',
+            'is_owner': activity.user == user
         }
 
 
