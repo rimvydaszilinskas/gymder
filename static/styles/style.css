@@ -41,3 +41,8 @@ a.author {
     font-size: 1.3em;
     font-weight: bold;
 }
+
+.secondary {
+    color: gray;
+    font-size: 0.9em;
+}

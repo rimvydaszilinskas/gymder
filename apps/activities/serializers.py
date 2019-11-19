@@ -8,6 +8,7 @@ from apps.utils.serializers import (
     TagSerializer
 )
 
+from .constants import RequestStatus
 from .models import (
     ActivityType,
     GroupActivity,
@@ -26,7 +27,7 @@ class RequestSerializer(serializers.ModelSerializer):
         fields = (
             'uuid',
             'status',
-            'activity',
+            'user',
             'message'
         )
 
@@ -87,7 +88,8 @@ class IndividualActivitySerializer(serializers.ModelSerializer):
     public = serializers.BooleanField(required=False)
     needs_approval = serializers.BooleanField(required=False)
     user = UserSerializer(read_only=True)
-    requests = RequestSerializer(many=True)
+    requests = serializers.SerializerMethodField()
+    approved_requests = serializers.SerializerMethodField()
     tags = TagSerializer(many=True, required=False)
     formatted_year = serializers.DateTimeField(format='%Y', source='time', read_only=True)
     formatted_month_long = serializers.DateTimeField(format='%B', source='time', read_only=True)
@@ -111,6 +113,7 @@ class IndividualActivitySerializer(serializers.ModelSerializer):
             'user',
             'tags',
             'requests',
+            'approved_requests',
             'formatted_year',
             'formatted_month_long',
             'formatted_month_short',
@@ -189,8 +192,15 @@ class IndividualActivitySerializer(serializers.ModelSerializer):
 
         return self.instance
 
+    def get_requests(self, obj):
+        requests = obj.requests.filter(is_deleted=False)
+        return RequestSerializer(requests, many=True).data
 
-class GroupActivitySerializer(IndividualActivitySerializer, serializers.ModelSerializer):
+    def get_approved_requests(self, obj):
+        return obj.requests.filter(is_deleted=False, status=RequestStatus.APPROVED).count()
+
+
+class GroupActivitySerializer(IndividualActivitySerializer):
     max_attendees = serializers.IntegerField(min_value=2, max_value=20, required=False)
     price = serializers.DecimalField(max_digits=12, decimal_places=4, coerce_to_string=False, required=False)
     currency = serializers.CharField(max_length=30, required=False)
@@ -199,7 +209,7 @@ class GroupActivitySerializer(IndividualActivitySerializer, serializers.ModelSer
 
     class Meta:
         model = GroupActivity
-        fields = ActivitySerializer.Meta.fields + (
+        fields = IndividualActivitySerializer.Meta.fields + (
             'max_attendees',
             'price',
             'currency'

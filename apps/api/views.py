@@ -230,6 +230,17 @@ class ActivityRequestView(FindActivityMixin, APIView):
     def post(self, request, *args, **kwargs):
         activity = self.get_activity(uuid=kwargs['uuid'], user=request.user)
 
+        if hasattr(activity, 'max_attendees'):
+            # it is a group activity, check if it has less than the max_attendees
+            if activity.number_of_attendees >= activity.max_attendees:
+                return Response(
+                    status=status.HTTP_403_FORBIDDEN, data={'detail': 'aready full'})
+        else:
+            # it is an individual activity, check if it has at least one attendee
+            if activity.number_of_attendees != 0:
+                return Response(
+                    status=status.HTTP_403_FORBIDDEN, data={'detail': 'already full'})
+
         if activity.user == request.user:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
@@ -241,7 +252,7 @@ class ActivityRequestView(FindActivityMixin, APIView):
         if not created:
             user_request.is_deleted = True
             user_request.save(update_fields=['is_deleted'])
-            return Response()
+            return Response({'deleted': True})
 
         user_request.status = activity.default_status
         user_request.save(update_fields=['status'])
@@ -578,7 +589,7 @@ class ActivityPostView(FindActivityMixin, ListAPIView):
     def get_queryset(self):
         activity = self.get_activity(self.kwargs['uuid'], self.request.user)
 
-        posts = activity.posts.filter(is_deleted=False)
+        posts = activity.posts.filter(is_deleted=False).order_by('-created_at')
 
         return posts
     
