@@ -9,7 +9,7 @@ class PostSerializer(serializers.ModelSerializer):
     uuid = serializers.UUIDField(format='hex', read_only=True)
     user = UserSerializer(read_only=True)
     body = serializers.CharField(max_length=500)
-    date = serializers.DateTimeField(source='created_at', read_only=True)
+    date = serializers.DateTimeField(format='%H:%M on %d, %B %Y', source='created_at', read_only=True)
     comments = serializers.SerializerMethodField()
 
     class Meta:

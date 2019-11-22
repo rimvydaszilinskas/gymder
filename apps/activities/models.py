@@ -104,6 +104,11 @@ class Activity(BaseModel):
         else:
             return RequestStatus.APPROVED
 
+    @cached_property
+    def number_of_attendees(self):
+        return self.requests.filter(
+            is_deleted=False, status=RequestStatus.APPROVED).count()
+
 
 class IndividualActivity(Activity):
     FORMAT = ActivityFormat.INDIVIDUAL

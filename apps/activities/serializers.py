@@ -8,12 +8,28 @@ from apps.utils.serializers import (
     TagSerializer
 )
 
+from .constants import RequestStatus
 from .models import (
     ActivityType,
     GroupActivity,
     IndividualActivity,
     Request
 )
+
+
+class RequestSerializer(serializers.ModelSerializer):
+    """ Used for returning attendees to event """
+    uuid = serializers.UUIDField(format='hex', read_only=True)
+    user = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Request
+        fields = (
+            'uuid',
+            'status',
+            'user',
+            'message'
+        )
 
 
 class ActivityTypeSerializer(serializers.ModelSerializer):
@@ -63,16 +79,24 @@ class ActivitySerializer(serializers.ModelSerializer):
 
 class IndividualActivitySerializer(serializers.ModelSerializer):
     uuid = serializers.UUIDField(format='hex', read_only=True)
-    title = serializers.CharField(max_length=100)
-    description = serializers.CharField(max_length=500, required=False)
+    title = serializers.CharField(max_length=100, required=True)
+    description = serializers.CharField(max_length=500, required=False, allow_blank=True)
     time = serializers.DateTimeField()
     duration = serializers.IntegerField(min_value=5, max_value=600)
     address = AddressSerializer(required=False, many=False)
-    activity_type = ActivityTypeSerializer(many=False, required=True)
+    activity_type = ActivityTypeSerializer(many=False, required=False)
     public = serializers.BooleanField(required=False)
     needs_approval = serializers.BooleanField(required=False)
     user = UserSerializer(read_only=True)
+    requests = serializers.SerializerMethodField()
+    approved_requests = serializers.SerializerMethodField()
     tags = TagSerializer(many=True, required=False)
+    formatted_year = serializers.DateTimeField(format='%Y', source='time', read_only=True)
+    formatted_month_long = serializers.DateTimeField(format='%B', source='time', read_only=True)
+    formatted_month_short = serializers.DateTimeField(format='%b', source='time', read_only=True)
+    formatted_day_short = serializers.DateTimeField(format='%a', source='time', read_only=True)
+    formatted_day_long = serializers.DateTimeField(format='%A', source='time', read_only=True)
+    formatted_day_number = serializers.DateTimeField(format='%d', source='time', read_only=True)
 
     class Meta:
         model = IndividualActivity
@@ -87,7 +111,15 @@ class IndividualActivitySerializer(serializers.ModelSerializer):
             'public',
             'needs_approval',
             'user',
-            'tags'
+            'tags',
+            'requests',
+            'approved_requests',
+            'formatted_year',
+            'formatted_month_long',
+            'formatted_month_short',
+            'formatted_day_long',
+            'formatted_day_short',
+            'formatted_day_number'
         )
 
     def create(self, validated_data):
@@ -160,8 +192,15 @@ class IndividualActivitySerializer(serializers.ModelSerializer):
 
         return self.instance
 
+    def get_requests(self, obj):
+        requests = obj.requests.filter(is_deleted=False)
+        return RequestSerializer(requests, many=True).data
 
-class GroupActivitySerializer(ActivityTypeSerializer):
+    def get_approved_requests(self, obj):
+        return obj.requests.filter(is_deleted=False, status=RequestStatus.APPROVED).count()
+
+
+class GroupActivitySerializer(IndividualActivitySerializer):
     max_attendees = serializers.IntegerField(min_value=2, max_value=20, required=False)
     price = serializers.DecimalField(max_digits=12, decimal_places=4, coerce_to_string=False, required=False)
     currency = serializers.CharField(max_length=30, required=False)
@@ -170,7 +209,7 @@ class GroupActivitySerializer(ActivityTypeSerializer):
 
     class Meta:
         model = GroupActivity
-        fields = ActivitySerializer.Meta.fields + (
+        fields = IndividualActivitySerializer.Meta.fields + (
             'max_attendees',
             'price',
             'currency'
@@ -185,7 +224,6 @@ class GroupActivitySerializer(ActivityTypeSerializer):
         tags = validated_data.pop('tags', None)
         activity_type = validated_data.pop('activity_type', None)
         address = validated_data.pop('address', None)
-
         instance = GroupActivity(**validated_data)
 
         if activity_type is not None:
@@ -202,7 +240,6 @@ class GroupActivitySerializer(ActivityTypeSerializer):
             user = kwargs.get('user', None)
             if not user:
                 raise ValueError('user has to be in kwargs')
-
             self.instance = self.create(self.validated_data)
             self.instance.user = user
             self.instance.save()
@@ -210,6 +247,7 @@ class GroupActivitySerializer(ActivityTypeSerializer):
             self.instance = self.update(self.instance, self.validated_data)
 
         return self.instance
+
 
 
 class UserRequestSerializer(serializers.ModelSerializer):
@@ -223,19 +261,4 @@ class UserRequestSerializer(serializers.ModelSerializer):
             'uuid',
             'status',
             'activity',
-        )
-
-
-class RequestSerializer(serializers.ModelSerializer):
-    """ Used for returning attendees to event """
-    uuid = serializers.UUIDField(format='hex', read_only=True)
-    user = UserSerializer(read_only=True)
-
-    class Meta:
-        model = Request
-        fields = (
-            'uuid',
-            'status',
-            'activity',
-            'message'
         )

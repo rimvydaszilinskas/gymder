@@ -9,6 +9,7 @@ from apps.activities.models import GroupActivity, IndividualActivity
 from apps.communication.models import Post
 from apps.groups.constants import MembershipTypes
 from apps.groups.models import Group, Membership
+from apps.utils.models import Address
 
 
 class FindActivityMixin(object):
@@ -73,10 +74,25 @@ class ActivityMixin(object):
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
     def post(self, request, *args, **kwargs):
+        print(request.data)
         serializer = self.serializer_class(data=request.data)
 
-        serializer.is_valid()
+        serializer.is_valid(raise_exception=True)
         instance = serializer.save(user=request.user)
+
+        # check if address uuid is attached
+        if 'address_uuid' in request.data:
+            try:
+                address = Address.objects.get(uuid=request.data['address_uuid'])
+
+                # attach the "creator" of the address
+                address.user = request.user
+                address.save(update_fields=['user'])
+
+                instance.address = address
+                instance.save(update_fields=['address'])
+            except Exception as e:
+                pass
 
         serializer = self.serializer_class(instance)
 
@@ -155,7 +171,7 @@ class MembershipMixin(object):
         if group_membership.exists():
             return membership
         
-        raise HttpResponseForbidden()
+        raise PermissionDenied()
 
     def get_membership_edit(self, uuid, user):
         membership = self.get_membership(uuid, user)

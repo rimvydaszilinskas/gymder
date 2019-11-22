@@ -1,4 +1,4 @@
-from django.http import HttpResponseForbidden
+from django.core.exceptions import PermissionDenied
 
 from apps.groups.utils import has_access
 from apps.utils.location_utils import get_degree_of_longitude, get_distance
@@ -9,21 +9,21 @@ from .models import Activity
 
 def can_edit_activity(activity, user, raise_exception=False):
     if activity.user != user:
-        raise HttpResponseForbidden()
+        raise PermissionDenied()
     return True
 
 
 def can_view_activity(activity, user, raise_exception=False):
     group = activity.group
 
-    if user.is_superuser() or \
+    if user.is_superuser or \
         activity.user == user or \
              activity.public or \
                   has_access(user, activity.group, raise_exception=False):
         return True
 
     if raise_exception:
-        raise HttpResponseForbidden()
+        raise PermissionDenied()
     return False
 
 

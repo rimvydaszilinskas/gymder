@@ -2,7 +2,7 @@ from datetime import datetime
 
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from django.http import Http404, HttpResponseForbidden
+from django.http import Http404, HttpResponseForbidden, HttpResponseBadRequest
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -37,6 +37,7 @@ from apps.groups.serializer import (
     UserMembershipSerializer
 )
 from apps.users.models import User
+from apps.utils.location_utils import get_similar_addresses
 from apps.utils.models import Tag
 from apps.utils.serializers import (
     TagSerializer,
@@ -229,6 +230,17 @@ class ActivityRequestView(FindActivityMixin, APIView):
     def post(self, request, *args, **kwargs):
         activity = self.get_activity(uuid=kwargs['uuid'], user=request.user)
 
+        if hasattr(activity, 'max_attendees'):
+            # it is a group activity, check if it has less than the max_attendees
+            if activity.number_of_attendees >= activity.max_attendees:
+                return Response(
+                    status=status.HTTP_403_FORBIDDEN, data={'detail': 'aready full'})
+        else:
+            # it is an individual activity, check if it has at least one attendee
+            if activity.number_of_attendees != 0:
+                return Response(
+                    status=status.HTTP_403_FORBIDDEN, data={'detail': 'already full'})
+
         if activity.user == request.user:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
@@ -240,7 +252,7 @@ class ActivityRequestView(FindActivityMixin, APIView):
         if not created:
             user_request.is_deleted = True
             user_request.save(update_fields=['is_deleted'])
-            return Response()
+            return Response({'deleted': True})
 
         user_request.status = activity.default_status
         user_request.save(update_fields=['status'])
@@ -577,7 +589,7 @@ class ActivityPostView(FindActivityMixin, ListAPIView):
     def get_queryset(self):
         activity = self.get_activity(self.kwargs['uuid'], self.request.user)
 
-        posts = activity.posts.filter(is_deleted=False)
+        posts = activity.posts.filter(is_deleted=False).order_by('-created_at')
 
         return posts
     
@@ -670,3 +682,20 @@ class CommentView(PostMixin, APIView):
         comment.save(update_fields=['is_deleted'])
 
         return Response(status=status.HTTP_200_OK)
+
+
+# Utility views
+
+
+class GetSimilarAddressesView(APIView):
+    serializer_class = AddressSerializer
+
+    def post(self, request, *args, **kwargs):
+        if 'address' not in request.data:
+            return HttpResponseBadRequest()
+
+        addresses = get_similar_addresses(request.data['address'])
+
+        serializer = AddressSerializer(addresses, many=True)
+
+        return Response(data=serializer.data)

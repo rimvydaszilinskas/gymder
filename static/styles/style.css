@@ -1,0 +1,48 @@
+p.lead {
+    font-size: 2.1em;
+    font-weight: bold;
+}
+
+span.event-month {
+    font-size: 1.1em;
+    color: darkred;
+}
+
+span.event-day {
+    font-size: 1.7em;
+}
+
+.no-margin-top {
+    margin-top: 0;
+}
+
+.margin-top {
+    margin-top: 2em;
+}
+
+.no-margin {
+    margin: 0;
+}
+
+span.datetime {
+    font-size: 1.5em;
+}
+
+div.clickable:hover {
+    background-color: whitesmoke;
+    cursor: pointer;
+}
+
+.profile-img {
+    max-height: 6em;
+}
+
+a.author {
+    font-size: 1.3em;
+    font-weight: bold;
+}
+
+.secondary {
+    color: gray;
+    font-size: 0.9em;
+}
