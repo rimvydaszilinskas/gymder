@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
 
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.admin import TokenAdmin
@@ -6,10 +7,10 @@ from rest_framework.authtoken.admin import TokenAdmin
 from .models import User
 
 
-class UserAdmin(admin.ModelAdmin):
+class UserAdmin(UserAdmin):
     readonly_fields = [
         'uuid',
-        'password'
+        'email'
     ]
 
     list_display = [
