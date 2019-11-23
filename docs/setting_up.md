@@ -52,6 +52,12 @@ echo 'DB_USERNAME' >> .env
 echo 'DB_PASSWORD' >> .env
 ```
 
+Link local development settings files to `settings.py`
+
+```shell
+ln settings/development.py settings/settings.py
+```
+
 Create a virtual environment for the project:
 
 ```shell

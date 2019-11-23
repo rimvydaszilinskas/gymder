@@ -29,3 +29,8 @@ static/bundles/
 satatic/django_extensions/
 static/admin/
 static/rest_framework/
+static/django_extensions
+settings/settings.py
+
+# GCP
+cloud_sql_proxy
