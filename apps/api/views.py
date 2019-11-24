@@ -81,7 +81,7 @@ class ActivityView(PutPatchMixin, FindActivityMixin, APIView):
     group_serializer_class = None
 
     def get(self, request, *args, **kwargs):
-        activity = self.get_activity(kwargs['uuid'])
+        activity = self.get_activity(kwargs['uuid'], request.user)
 
         can_view_activity(activity, request.user, raise_exception=True)
         
@@ -93,7 +93,7 @@ class ActivityView(PutPatchMixin, FindActivityMixin, APIView):
         return Response(serializer.data)
 
     def post(self, request, *args, **kwargs):
-        activity = self.get_activity(kwargs['uuid'])
+        activity = self.get_activity(kwargs['uuid'], request.user)
 
         can_edit_activity(activity, request.user, raise_exception=True)
 
@@ -165,14 +165,14 @@ class RegisterActivityAddress(FindActivityMixin, APIView):
     serializer_class = AddressSerializer
 
     def get(self, request, *args, **kwargs):
-        activity = self.get_activity(kwargs['uuid'])
+        activity = self.get_activity(kwargs['uuid'], request.user)
 
         serializer = self.serializer_class(activity.address)
 
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
     def post(self, request, *args, **kwargs):
-        activity = self.get_activity(kwargs['uuid'])
+        activity = self.get_activity(kwargs['uuid'], request.user)
 
         serializer = self.serializer_class(data=request.data)
 
@@ -329,7 +329,7 @@ class UserActivitiesView(ListAPIView):
 
     def get_queryset(self):
         return Activity.objects.filter(
-            time_gte=datetime.today(),
+            time__gte=datetime.today(),
             is_deleted=False
         ).filter(
             Q(user=self.request.user) | Q(
