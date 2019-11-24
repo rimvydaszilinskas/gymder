@@ -15,3 +15,19 @@ class UserSerializer(serializers.ModelSerializer):
             'last_name',
             'email'
         )
+
+
+class MobileUserSerializer(serializers.ModelSerializer):
+    uuid = serializers.UUIDField(format='hex', read_only=True)
+    token = serializers.CharField(read_only=True, source='auth_token.key')
+
+    class Meta:
+        model = User
+        fields = (
+            'uuid',
+            'username',
+            'first_name',
+            'last_name',
+            'email',
+            'token'
+        )

@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'apps.activities',
     'apps.communication',
     'apps.groups',
+    'apps.mobile',
     'apps.pages',
     'apps.users',
     'apps.utils',
