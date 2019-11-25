@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "main": "index.js",
   "scripts": {
-    "build": "webpack --config webpack.config.js --progress --colors --mode development",
+    "build": "rm -rf ./static/bundles && webpack --config webpack.config.js --progress --colors --mode development",
     "watch": "rm -rf ./static/bundles && webpack --config webpack.config.js --watch --mode development"
   },
   "author": "",
