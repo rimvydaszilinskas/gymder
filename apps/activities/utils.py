@@ -19,7 +19,7 @@ def can_view_activity(activity, user, raise_exception=False):
     if user.is_superuser or \
         activity.user == user or \
              activity.public or \
-                  has_access(user, activity.group, raise_exception=False):
+                  has_access(user, activity.group, raise_exception=raise_exception):
         return True
 
     if raise_exception:

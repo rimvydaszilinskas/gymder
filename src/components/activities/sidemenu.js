@@ -23,4 +23,4 @@ const ActivitySideNavigation = (props) => {
     )
 };
 
-export default ActivitySideNavigation
+export default ActivitySideNavigation;
