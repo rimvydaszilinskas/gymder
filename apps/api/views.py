@@ -216,7 +216,7 @@ class ActivityRequestView(FindActivityMixin, APIView):
     """
     Activity request view for getting activity's requests and creating/deleting
     """
-    serializer_class = UserRequestSerializer
+    serializer_class = RequestSerializer
 
     def get(self, request, *args, **kwargs):
         activity = self.get_activity(uuid=kwargs['uuid'], user=request.user)
