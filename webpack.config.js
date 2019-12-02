@@ -7,6 +7,7 @@ module.exports = {
     entry: {
         'index': './src/index.js',
         'activity_view': './src/activities/preview.js',
+        'activities_view': './src/activities/viewactivities.js',
         'activity_attendees': './src/activities/attendees.js',
         'create_activity': './src/activities/create.js',
     },

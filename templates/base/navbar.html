@@ -22,7 +22,7 @@
             <a href="#">Groups</a>
         </li>
         <li>
-            <a href="#">Activities</a>
+            <a href="{% url 'activities:view' %}">Activities</a>
         </li>
         <li>
             <a href="{% url 'users:logout' %}">Logout</a>
@@ -56,7 +56,7 @@
                     <a href="#">Groups</a>
                 </li>
                 <li>
-                    <a href="#">Activities</a>
+                    <a href="{% url 'activities:view' %}">Activities</a>
                 </li>
                 <li>
                     <a class="dropdown-trigger center" href="#!" data-target="profile-dropdown">

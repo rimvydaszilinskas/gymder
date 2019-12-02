@@ -1,6 +1,11 @@
+from datetime import datetime
+
 from django.views import View
 from django.shortcuts import get_object_or_404
+from django.db.models import Q
 
+from apps.activities.serializers import ActivitySerializer
+from apps.activities.constants import RequestStatus
 from apps.pages.views_mixins import PageViewMixin
 from apps.users.serializers import UserSerializer
 
@@ -71,3 +76,21 @@ class CreateActivityView(PageViewMixin):
         serializer = UserSerializer(user)
 
         return {'user': serializer.data}
+
+
+class ActivitiesView(PageViewMixin):
+    BUNDLE_NAME = 'activities_view'
+
+    def create_js_context(self, request, *args, **kwargs):
+        activities = Activity.objects.filter(
+            time__gte=datetime.today(),
+            is_deleted=False
+        ).filter(
+            Q(user=request.user) | Q(
+                requests__user=request.user,
+                requests__status=RequestStatus.APPROVED
+            )
+        )
+        serializer = ActivitySerializer(activities, many=True)
+
+        return {'activities': serializer.data}

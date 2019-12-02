@@ -58,6 +58,7 @@ class ActivitySerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     tags = TagSerializer(many=True, required=False)
     is_group = serializers.BooleanField(read_only=True)
+    formatted_dates = serializers.DateTimeField(format='%d %B %Y, %H:%M', source='time', read_only=True)
 
     class Meta:
         model = IndividualActivity
@@ -73,7 +74,8 @@ class ActivitySerializer(serializers.ModelSerializer):
             'needs_approval',
             'user',
             'tags',
-            'is_group'
+            'is_group',
+            'formatted_dates',
         )
 
 
