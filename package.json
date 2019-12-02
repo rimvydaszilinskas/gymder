@@ -4,7 +4,8 @@
   "main": "index.js",
   "scripts": {
     "build": "rm -rf ./static/bundles && webpack --config webpack.config.js --progress --colors --mode development",
-    "watch": "rm -rf ./static/bundles && webpack --config webpack.config.js --watch --mode development"
+    "watch": "rm -rf ./static/bundles && webpack --config webpack.config.js --watch --mode development",
+    "windows": "webpack --config webpack.config.js --watch --mode development"
   },
   "author": "",
   "license": "ISC",
