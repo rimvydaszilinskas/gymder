@@ -12,5 +12,5 @@ urlpatterns = [
 
     url(r'^activities/$', api_views.UserActivitiesView.as_view(), name='user-activities'),
     url(r'^activities/(?P<uuid>\w+)/$', api_views.ActivityView.as_view(), name='activity-view'),
+    url(r'^activities/(?P<uuid>\w+)/posts/$', api_views.ActivityPostView.as_view(), name='activity-posts'),
 ]
-
