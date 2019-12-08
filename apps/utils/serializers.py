@@ -95,14 +95,12 @@ class MinimalAddressSerializer(serializers.ModelSerializer):
         max_digits=12,
         decimal_places=5,
         coerce_to_string=False,
-        required=False,
         max_value=Decimal(90),
         min_value=Decimal(-90))
     longitude = serializers.DecimalField(
         max_digits=12,
         decimal_places=5,
         coerce_to_string=False,
-        required=False,
         max_value=Decimal(180),
         min_value=Decimal(-180))
 

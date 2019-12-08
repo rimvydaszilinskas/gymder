@@ -190,6 +190,11 @@ class RegisterActivityAddress(FindActivityMixin, APIView):
 
 
 class NearbyActivitiesView(APIView):
+    """
+    Return the activities nearby coordinates
+
+    Specify `longitude` and `latitude` in the request
+    """
     address_serializer_class = MinimalAddressSerializer
     serializer_class = ActivitySerializer
 
@@ -206,10 +211,7 @@ class NearbyActivitiesView(APIView):
 
         serializer = self.serializer_class(activities, many=True)
 
-        if len(activities) != 0:
-            return Response(status=status.HTTP_200_OK, data=serializer.data)
-
-        return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
 
 
 class ActivityRequestView(FindActivityMixin, APIView):
