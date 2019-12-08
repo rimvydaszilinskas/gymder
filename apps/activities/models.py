@@ -53,6 +53,7 @@ class Activity(BaseModel):
         'groups.Group',
         null=True,
         blank=True,
+        related_name='activities',
         on_delete=models.CASCADE)
 
     activity_type = models.ForeignKey(

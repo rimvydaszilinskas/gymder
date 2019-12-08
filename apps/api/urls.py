@@ -4,6 +4,7 @@ from . import views
 
 urlpatterns = [
     # Activities paths
+    url(r'^activities/$', views.SearchActivitiesView.as_view(), name='search-activities'),
     url(r'^activities/individual/$', views.IndividualActivitiesView.as_view(), name='individual-activities'),
     url(r'^activities/group/$', views.GroupActivityView.as_view(), name='group-activities'),
     url(r'^activities/nearby/$', views.NearbyActivitiesView.as_view(), name='nearby-activities'),

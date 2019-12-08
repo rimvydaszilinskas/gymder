@@ -1,4 +1,5 @@
 from datetime import datetime
+from itertools import chain
 
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
@@ -216,6 +217,42 @@ class NearbyActivitiesView(APIView):
 
         serializer = self.serializer_class(activities, many=True)
 
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+
+class SearchActivitiesView(APIView):
+    """
+    Search activities
+    """
+    serializer_class =  ActivitySerializer
+
+    def get(self, request, *args, **kwargs):
+        query = request.data.get('query', None)
+        
+        if query is None:
+            query = request.GET.get('query', None)
+
+        memberships = request.user.memberships.filter(status=RequestStatus.APPROVED)
+
+        activities = Activity.objects.filter(Q(user=request.user) | Q(public=True), is_deleted=False)
+        groups = request.user.owned_groups.filter(is_deleted=False)
+        requests = request.user.requests.filter(
+            Q(status=RequestStatus.PENDING) | Q(status=RequestStatus.APPROVED), is_deleted=False)
+
+        for group in groups:
+            activities |= group.activities.filter(is_deleted=False)
+        
+        for membership in memberships:
+            activities |= membership.group.activities.filter(is_deleted=False)
+
+        for r in requests:
+            activities |= Activity.objects.filter(pk=r.activity.pk)
+
+        if query is not None:
+            activities = activities.filter(
+                Q(title__contains=query) | Q(description__contains=query))
+
+        serializer = self.serializer_class(activities, many=True)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
 
