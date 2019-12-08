@@ -201,7 +201,12 @@ class NearbyActivitiesView(APIView):
     def get(self, request, *args, **kwargs):
         address_serializer = self.address_serializer_class(data=request.data)
 
-        address_serializer.is_valid(raise_exception=True)
+        try:
+            address_serializer.is_valid(raise_exception=True)
+        except:
+            address_serializer = self.address_serializer_class(data=request.GET)
+            address_serializer.is_valid(raise_exception=True)
+
         address_instance = address_serializer.save()
 
         address_instance.user = request.user
