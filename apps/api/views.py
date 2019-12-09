@@ -79,7 +79,7 @@ class ActivityView(PutPatchMixin, FindActivityMixin, APIView):
     Individual and group activity UD
     """
     individual_serializer_class = IndividualActivitySerializer
-    group_serializer_class = None
+    group_serializer_class = GroupActivitySerializer
 
     def get(self, request, *args, **kwargs):
         activity = self.get_activity(kwargs['uuid'], request.user)
