@@ -275,7 +275,7 @@ class ActivityRequestView(FindActivityMixin, APIView):
         activity = self.get_activity(uuid=kwargs['uuid'], user=request.user)
 
         # check if the request already exists
-        user_request = request.objects.filter(
+        user_request = Request.objects.filter(
             user=request.user, 
             activity=activity, 
             is_deleted=False)
@@ -384,7 +384,8 @@ class UserActivitiesView(ListAPIView):
         ).filter(
             Q(user=self.request.user) | Q(
                 requests__user=self.request.user,
-                requests__status=RequestStatus.APPROVED
+                requests__status=RequestStatus.APPROVED,
+                requests__is_deleted=False
             )
         )
 
