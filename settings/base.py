@@ -52,6 +52,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'apps.utils.middleware.LoginRequiredMiddleware',
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -139,3 +140,13 @@ GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY', None)
 
 if GOOGLE_MAPS_API_KEY:
     GOOGLE_MAPS_API = googlemaps.Client(key=GOOGLE_MAPS_API_KEY)
+
+LOGIN_URL = '/users/login/'
+
+LOGIN_REDIRECT_URL = '/users/profile/'
+
+LOGIN_EXEMPT_URLS = (
+    r'^$',
+    r'^users/logout/$',
+    r'^users/register/$',
+)

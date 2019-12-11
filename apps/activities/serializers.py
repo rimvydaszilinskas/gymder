@@ -99,6 +99,7 @@ class IndividualActivitySerializer(serializers.ModelSerializer):
     formatted_day_short = serializers.DateTimeField(format='%a', source='time', read_only=True)
     formatted_day_long = serializers.DateTimeField(format='%A', source='time', read_only=True)
     formatted_day_number = serializers.DateTimeField(format='%d', source='time', read_only=True)
+    is_group = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = IndividualActivity
@@ -116,6 +117,7 @@ class IndividualActivitySerializer(serializers.ModelSerializer):
             'tags',
             'requests',
             'approved_requests',
+            'is_group',
             'formatted_year',
             'formatted_month_long',
             'formatted_month_short',
