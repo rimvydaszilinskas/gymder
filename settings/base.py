@@ -149,4 +149,11 @@ LOGIN_EXEMPT_URLS = (
     r'^$',
     r'^users/logout/$',
     r'^users/register/$',
+    r'^api/',
+    r'^m/',
+)
+
+ALLOW_ALL_URLS = (
+    r'^api/',
+    r'^m/',
 )

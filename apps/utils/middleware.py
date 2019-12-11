@@ -26,7 +26,9 @@ class LoginRequiredMiddleware:
         return response
 
     def process_view(self, request, view_func, view_args, view_kwargs):
+        # check if request is not broken
         assert hasattr(request, 'user')
+
         path = request.path_info.lstrip('/')
 
         if not request.user.is_authenticated:
@@ -34,12 +36,13 @@ class LoginRequiredMiddleware:
                 return redirect(settings.LOGIN_URL)
 
         url_is_exempt = any(url.match(path) for url in EXEMPT_URLS)
+        url_is_global = any(url.match(path) for url in [re.compile(_) for _ in settings.ALLOW_ALL_URLS])
 
         if path == reverse('users:logout').lstrip('/'):
-            return
-
-        if request.user.is_authenticated and url_is_exempt:
+            return None
+        elif url_is_global:
+            return None
+        elif request.user.is_authenticated and url_is_exempt:
             return redirect(settings.LOGIN_REDIRECT_URL)
-
         elif request.user.is_authenticated or url_is_exempt:
             return None
