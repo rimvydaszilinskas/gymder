@@ -274,12 +274,18 @@ class ActivityRequestView(FindActivityMixin, APIView):
     def post(self, request, *args, **kwargs):
         activity = self.get_activity(uuid=kwargs['uuid'], user=request.user)
 
+        # check if the request already exists
+        user_request = request.objects.filter(
+            user=request.user, 
+            activity=activity, 
+            is_deleted=False)
+
         if hasattr(activity, 'max_attendees'):
             # it is a group activity, check if it has less than the max_attendees
             if activity.number_of_attendees >= activity.max_attendees:
                 return Response(
                     status=status.HTTP_403_FORBIDDEN, data={'detail': 'aready full'})
-        else:
+        elif not user_request.exists():
             # it is an individual activity, check if it has at least one attendee
             if activity.number_of_attendees != 0:
                 return Response(
