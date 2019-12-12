@@ -130,7 +130,7 @@ class PreviewActivity extends React.Component {
             }
         }).catch(e => {
             console.log(e);
-            alert('Something went wrong while posting')
+            alert('Something went wrong while posting');
         });
     }
 

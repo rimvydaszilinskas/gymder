@@ -92,6 +92,15 @@ class ActivityMixin(object):
                 instance.save(update_fields=['address'])
             except Exception as e:
                 pass
+        
+        if 'group_uuid' in request.data:
+            try:
+                group = Group.objects.get(uuid=request.data['group_uuid'])
+
+                instance.group = group
+                instance.save(update_fields=['group'])
+            except Exception as e:
+                pass
 
         serializer = self.serializer_class(instance)
 

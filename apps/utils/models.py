@@ -2,6 +2,8 @@ from django.db import models
 
 import uuid
 
+from .managers import BaseManager
+
 
 class Model(models.Model):
     """ Minimum abstract model with UUID """
@@ -16,6 +18,8 @@ class BaseModel(Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_deleted = models.BooleanField(default=False)
+
+    objects = BaseManager()
 
     class Meta:
         abstract = True

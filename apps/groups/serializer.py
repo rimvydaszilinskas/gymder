@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from apps.activities.constants import RequestStatus
 from apps.users.serializers import UserSerializer
 
 from .models import Group, Membership
@@ -43,6 +44,19 @@ class GroupSerializer(serializers.ModelSerializer):
             self.instance = self.update(self.instance, self.validated_data)
 
         return self.instance
+
+
+class BriefGroupSerializer(GroupSerializer):
+    number_of_users = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Group
+        fields = GroupSerializer.Meta.fields + (
+            'number_of_users',
+        )
+    
+    def get_number_of_users(self, obj):
+        return obj.memberships.only_active().filter(status=RequestStatus.APPROVED).count()
 
 
 class MembershipSerializer(serializers.ModelSerializer):

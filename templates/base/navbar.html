@@ -19,7 +19,7 @@
             <a href="#">Profile</a>
         </li>
         <li>
-            <a href="#">Groups</a>
+            <a href="{% url 'groups:index' %}">Groups</a>
         </li>
         <li>
             <a href="{% url 'activities:view' %}">Activities</a>
@@ -50,10 +50,7 @@
             </li>
             {% if user.is_authenticated %}
                 <li>
-                    <a href="#">Groups</a>
-                </li>
-                <li>
-                    <a href="#">Groups</a>
+                    <a href="{% url 'groups:index' %}">Groups</a>
                 </li>
                 <li>
                     <a href="{% url 'activities:view' %}">Activities</a>

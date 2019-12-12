@@ -20,6 +20,8 @@ urlpatterns = [
     url(r'^api/', include(('apps.api.urls', 'api'), namespace='api')),
     
     url(r'^admin/', admin.site.urls),
+    
+    url(r'^groups/', include(('apps.groups.urls', 'groups'), namespace='groups')),
     url(r'^users/', include(('apps.users.urls', 'users'), namespace='users')),
     url(r'^activities/', include(('apps.activities.urls', 'activities'), namespace='activities')),
     url(r'^m/', include(('apps.mobile.urls', 'mobile'), namespace='mobile')),

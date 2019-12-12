@@ -8,14 +8,14 @@ class CreateActivity extends React.Component {
         super(props);
         
         let today = new Date();
-
+        console.log(today);
         this.state = {
             user: context.user,
             form: {
                 title: `${context.user.username} activity`,
                 description: '',
                 time: (today.getHours() < 10 ? '0' : '') + today.getHours() + ':' + (today.getMinutes() < 10 ? '0': '') + today.getMinutes(),
-                date: today.getFullYear() + '-' + (today.getMonth() < 10 ? '0' : '') + today.getMonth() + '-' + (today.getDate() + 7 < 10 ? '0' : '') + today.getDate(),
+                date: today.getFullYear() + '-' + (today.getMonth() < 9 ? '0' : '') + (today.getMonth() + 1) + '-' + (today.getDate() + 7 < 10 ? '0' : '') + (today.getDate() + 7),
                 address: '',
                 needs_approval: false,
                 public: true,
@@ -23,11 +23,14 @@ class CreateActivity extends React.Component {
                 price: 0,
                 duration: 60
             },
+            group: context.group,
             group_activity: false,
             address_validated: false,
             address_uuid: null,
             errors: null
         };
+
+        console.log(this.state);
 
         this.handleLabelInput = this.handleLabelInput.bind(this);
         this.handleDescriptionInput = this.handleDescriptionInput.bind(this);
@@ -185,6 +188,10 @@ class CreateActivity extends React.Component {
         delete form.date;
 
         form.time = datetime;
+        
+        if(this.state.group) {
+            form.group_uuid = this.state.group.uuid
+        }
 
         fetch(url, {
             method: 'POST',

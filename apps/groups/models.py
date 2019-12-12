@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 from apps.activities.constants import RequestStatus
 from apps.utils.models import BaseModel
@@ -48,3 +50,9 @@ class Membership(BaseModel):
 
     def __str__(self):
         return '{group} - {user}'.format(group=str(self.group), user=str(self.user))
+
+
+@receiver(post_save, sender=Group)
+def create_admin_membership(sender, instance=None, created=False, *args, **kwargs):
+    if instance is not None and instance.user is not None:
+        Membership.objects.get_or_create(group=instance, user=instance.user)

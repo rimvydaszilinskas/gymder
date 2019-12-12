@@ -34,9 +34,11 @@ from apps.groups.constants import MembershipTypes
 from apps.groups.models import Group, Membership
 from apps.groups.serializer import (
     GroupSerializer,
+    BriefGroupSerializer,
     MembershipSerializer,
     UserMembershipSerializer
 )
+from apps.groups.utils import has_access, can_edit
 from apps.users.models import User
 from apps.utils.location_utils import get_similar_addresses
 from apps.utils.models import Tag
@@ -458,12 +460,6 @@ class UserGroupView(ListAPIView):
 
         group = serializer.save(user=request.user)
 
-        Membership.objects.create(
-            group=group,
-            user=request.user,
-            membership_type=MembershipTypes.ADMIN,
-            status=RequestStatus.APPROVED)
-
         return Response(
             status=status.HTTP_201_CREATED, 
             data=serializer.data)
@@ -475,7 +471,7 @@ class GroupView(GroupMixin, PutPatchMixin, APIView):
     """
     User group view
     """
-    serializer_class = GroupSerializer
+    serializer_class = BriefGroupSerializer
 
     def get(self, request, *args, **kwargs):
         group = self.get_group(uuid=kwargs['uuid'], user=request.user)
@@ -524,30 +520,36 @@ class GroupMembershipsView(GroupMixin, APIView):
 
     def post(self, request, *args, **kwargs):
         group = self.get_group(uuid=kwargs['uuid'], user=request.user)
-
+        
         user_uuid = request.data.get('user_uuid', None)
-        user_email = request.data.get('user_email', None)
-        membership_status = RequestStatus.APPROVED if not group.needs_approval else RequestStatus.PENDING
+        user_identifier = request.data.get('user', None)
+        # TODO remove this
+        # membership_status = RequestStatus.APPROVED if not group.needs_approval else RequestStatus.PENDING
 
         if user_uuid:
             user = get_object_or_404(User, uuid=user_uuid)
-        elif user_email:
-            user = get_object_or_404(User, email=user_email)
+        elif user_identifier:
+            user = User.objects.filter(Q(email=user_identifier) | Q(username=user_identifier))
+
+            if not user.exists():
+                return Response(status=status.HTTP_404_NOT_FOUND)
+
+            user = user.first()
         else:
             return Response(
                 status=status.HTTP_400_BAD_REQUEST, 
                 data={'detail': 'please specify user_uuid'})
 
-        membership = Membership.objects.create(
+        membership, created = Membership.objects.get_or_create(
             user=user,
             group=group,
-            status=membership_status,
+            status=RequestStatus.APPROVED,
             membership_type=MembershipTypes.PARTICIPANT)
 
         serializer = self.serializer_class(membership)
 
         return Response(
-            status=status.HTTP_201_CREATED,
+            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
             data=serializer.data)
 
 
