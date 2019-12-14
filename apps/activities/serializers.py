@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from apps.groups.serializer import GroupSerializer
 from apps.users.serializers import UserSerializer
 from apps.utils.constants import Currencies
 from apps.utils.models import Tag
@@ -76,6 +77,7 @@ class ActivitySerializer(serializers.ModelSerializer):
             'tags',
             'is_group',
             'formatted_dates',
+            'number_of_attendees',
         )
 
 
@@ -100,6 +102,7 @@ class IndividualActivitySerializer(serializers.ModelSerializer):
     formatted_day_long = serializers.DateTimeField(format='%A', source='time', read_only=True)
     formatted_day_number = serializers.DateTimeField(format='%d', source='time', read_only=True)
     is_group = serializers.BooleanField(read_only=True)
+    group = GroupSerializer(read_only=True)
 
     class Meta:
         model = IndividualActivity
@@ -123,7 +126,8 @@ class IndividualActivitySerializer(serializers.ModelSerializer):
             'formatted_month_short',
             'formatted_day_long',
             'formatted_day_short',
-            'formatted_day_number'
+            'formatted_day_number',
+            'group',
         )
 
     def create(self, validated_data):

@@ -9,7 +9,7 @@ const ActivitySideNavigation = (props) => {
 
     if (props.is_owner) {
         elements.push(
-            <a href={`/activities/${props.uuid}/settings/`} key='settings' className="collection-item">Settings</a>
+            <a href="#" onClick={props.deleteCallback ? props.deleteCallback : () => {}} key='settings' className="collection-item">Delete</a>
         );
     }
 

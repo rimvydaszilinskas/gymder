@@ -135,6 +135,8 @@ class GroupView extends React.Component {
                         group: group,
                         addUserText: ''
                     });
+
+                    alert('User added');
                 });
             } else if(response.status === 200) {
                 alert('User already in the group');

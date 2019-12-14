@@ -64,7 +64,7 @@ class MembershipSerializer(serializers.ModelSerializer):
     A read-only membership serializers
     """
     uuid = serializers.UUIDField(format='hex', read_only=True)
-    status = serializers.CharField(read_only=True)
+    status = serializers.CharField(required=False)
     user = UserSerializer(read_only=True)
     membership_type = serializers.CharField(read_only=True)
 
@@ -76,6 +76,17 @@ class MembershipSerializer(serializers.ModelSerializer):
             'user',
             'membership_type'
         )
+
+    def update(self, instance, validated_data):
+        instance.status = validated_data.get('status', instance.status)
+        instance.save(update_fields=['status'])
+        return instance
+
+    def save(self, **kwargs):
+        if self.instance:
+            self.instance = self.update(self.instance, self.validated_data)
+
+        return self.instance
 
 
 class UserMembershipSerializer(serializers.ModelSerializer):

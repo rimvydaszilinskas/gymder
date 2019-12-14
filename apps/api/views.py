@@ -113,7 +113,7 @@ class ActivityView(PutPatchMixin, FindActivityMixin, APIView):
             data=serializer.data)
 
     def delete(self, request, *args, **kwargs):
-        activity = self.get_object(kwargs['uuid'])
+        activity = self.get_activity(kwargs['uuid'], request.user)
 
         can_edit_activity(activity, request.user, raise_exception=True)
 
@@ -581,7 +581,7 @@ class MembershipView(MembershipMixin, APIView):
         """
         membership = self.get_membership_edit(
             uuid=kwargs['uuid'], user=request.user)
-
+        print(request.data)
         serializer = self.serializer_class(membership, data=request.data)
 
         serializer.is_valid(raise_exception=True)

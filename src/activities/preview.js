@@ -30,6 +30,7 @@ class PreviewActivity extends React.Component {
         this.handleSavePostClick = this.handleSavePostClick.bind(this);
         this.handleStatusButtonClick = this.handleStatusButtonClick.bind(this);
         this.determineStatusMessage = this.determineStatusMessage.bind(this);
+        this.deleteActivity = this.deleteActivity.bind(this);
 
 		this.fetchPosts()
     }
@@ -173,6 +174,29 @@ class PreviewActivity extends React.Component {
         });
     }
 
+    deleteActivity() {
+        let confirmed = confirm('Are you sure you want to delete this activity?');
+
+        if(!confirmed) {
+            return;
+        }
+
+        fetch(`/api/activities/${this.state.activity.uuid}/`, {
+            method: 'DELETE',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        }).then(response => {
+            if(response.status === 200) {
+                window.location.replace('/activities/');
+            }
+        }).catch(e => {
+            alert('error deleting activity');
+        });
+    }
+
     render() {
         return (
             <React.Fragment>
@@ -181,12 +205,16 @@ class PreviewActivity extends React.Component {
                     <div className="col m2 s12">
                         <ActivitySideNavigation 
                             uuid={this.state.activity.uuid} 
-                            is_owner={this.state.user.uuid === this.state.activity.user.uuid}/>
-                        <StatusButtons 
-                            need_approval={this.state.activity.needs_approval} 
-                            request={this.state.user_request}
-                            onClick={this.handleStatusButtonClick}
+                            is_owner={this.state.user.uuid === this.state.activity.user.uuid}
+                            deleteCallback={this.deleteActivity}
                             />
+                        {this.state.user.uuid !== this.state.activity.user.uuid &&
+                            <StatusButtons 
+                                need_approval={this.state.activity.needs_approval} 
+                                request={this.state.user_request}
+                                onClick={this.handleStatusButtonClick}
+                                />
+                        }
                     </div>
                     <div className="col m6 s12">
                         <div className="card-panel margin-top">
@@ -203,6 +231,10 @@ class PreviewActivity extends React.Component {
                                     <span className="helper-text">
                                         {this.state.activity.public ? 'Public' : 'Private'} {this.state.activity.is_group ? '| Group' : ''} {this.determineStatusMessage()} | Hosted by <a href="">{this.state.activity.user.username}</a>
                                     </span>
+
+                                    {this.state.activity.group && 
+                                        <span className="helper-text"><br/>Group: <a href={`/groups/${this.state.activity.group.uuid}`}>{this.state.activity.group.title}</a></span>
+                                    }
                                 </div>
                             </div>
 

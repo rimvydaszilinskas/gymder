@@ -46,3 +46,7 @@ a.author {
     color: gray;
     font-size: 0.9em;
 }
+
+.btn-space-left {
+    margin-left: 1em;
+}

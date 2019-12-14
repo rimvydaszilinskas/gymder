@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDom from 'react-dom';
 import GroupSideNavigation from '../components/groups/sidemenu';
+import ActivityCard from '../components/activities/activity_card';
 
 class GroupActivities extends React.Component {
     constructor(props) {
@@ -12,7 +13,6 @@ class GroupActivities extends React.Component {
             activities: context.activities
         };
 
-        console.log(this.state);
         this.deleteGroup = this.deleteGroup.bind(this);
     }
 
@@ -70,6 +70,20 @@ class GroupActivities extends React.Component {
                                 </div>
                             </div>
                         </div>
+
+                        {this.state.activities.length !== 0 ? 
+                            this.state.activities.map((activity, index) => {
+                                return <ActivityCard key={index} activity={activity}/>;
+                            })
+                        : <div className="card-panel">
+                            <span>No activities found</span>
+                        </div>}
+                    </div>
+
+                    <div className="col m2 s12 margin-top">
+                        <center>
+                            <a href={`/groups/${this.state.group.uuid}/activities/create/`} className="btn">Create new</a>
+                        </center>
                     </div>
                 </div>
             </React.Fragment>

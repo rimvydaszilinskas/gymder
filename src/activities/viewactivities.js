@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDom from 'react-dom';
+import ActivityCard from '../components/activities/activity_card';
 
 class ViewActivities extends React.Component {
     constructor(props) {
@@ -15,18 +16,7 @@ class ViewActivities extends React.Component {
                 <div className="row">
                     <div className="col s12 m7">
                         {this.state.activities.map((element, index) => {
-                            return (
-                                <div className="card">
-                                    <span className="activity">{element.title}</span>
-                                    <div className="card-content">
-                                       <span className="date">{element.formatted_dates}</span><br/>
-                                       <span className="address">{element.address.address}</span><br/>
-                                    </div>
-                                    <div className="card-action">
-                                        <a href={`/activities/${element.uuid}/`}>Go to activity</a>
-                                    </div>
-                                </div>
-                            )
+                            return <ActivityCard activity={element} key={index} />
                         })}
                     </div>
                 </div>

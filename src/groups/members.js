@@ -12,12 +12,16 @@ class MembersView extends React.Component {
             group: context.group,
             user: context.user,
             memberships: context.memberships,
-            addUserText: ''
+            addUserText: '',
         };
+
+        console.log(this.state);
 
         this.deleteGroup = this.deleteGroup.bind(this);
         this.addUser = this.addUser.bind(this);
         this.handleAddUserInput = this.handleAddUserInput.bind(this);
+        this.approveMember = this.approveMember.bind(this);
+        this.declineMember = this.declineMember.bind(this);
     }
 
     deleteGroup() {
@@ -96,6 +100,64 @@ class MembersView extends React.Component {
         });
     }
 
+    approveMember(uuid) {
+        fetch(`/api/memberships/${uuid}/`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: JSON.stringify({
+                status: 'approved'
+            })
+        }).then(response => {
+            if(response.status === 200) {
+                let memberships = this.state.memberships;
+                let index = memberships.findIndex(membership => membership.uuid === uuid);
+                let membership = memberships[index];
+
+                membership.status = 'approved';
+                memberships[index] = membership;
+
+                this.setState({
+                    memberships: memberships
+                });
+            }
+        }).catch(e => {
+            alert('Error approving request');
+        });
+    }
+
+    declineMember(uuid) {
+        fetch(`/api/memberships/${uuid}/`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: JSON.stringify({
+                status: 'denied'
+            })
+        }).then(response => {
+            if(response.status === 200) {
+                let memberships = this.state.memberships;
+                let index = memberships.findIndex(membership => membership.uuid === uuid);
+                let membership = memberships[index];
+
+                membership.status = 'denied';
+                memberships[index] = membership;
+
+                this.setState({
+                    memberships: memberships
+                });
+            }
+        }).catch(e => {
+            alert('Error denying request');
+        });
+    }
+
     render() {
         return (
             <React.Fragment>
@@ -120,6 +182,108 @@ class MembersView extends React.Component {
                                     </span>
                                 </div>
                             </div>
+                        </div>
+
+                        <div className="row">
+                            <ul className="tabs">
+                                <li className="tab col s4">
+                                    <a href="#approved-members">Approved</a>
+                                </li>
+                                <li className="tab col s4">
+                                    <a href="#pending-members">Pending</a>
+                                </li>
+                                <li className="tab col s4">
+                                    <a href="#all-members">All</a>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div id="approved-members">
+                            {this.state.memberships.length !== 0 ?
+                                this.state.memberships.filter((membership) => {
+                                    return membership.status === 'approved';
+                                }).map((membership, index) => {
+                                    return (
+                                        <div className="card" key={index}>
+                                            <div className="card-content">
+                                                <span className="card-title">{membership.user.username ? membership.user.username : membership.user.email}</span>
+
+                                                <p>
+                                                    Status: {membership.status}
+                                                </p>
+                                            </div>
+                                            
+                                            {this.state.user.uuid === this.state.group.user.uuid &&
+                                                <div className="card-action">
+                                                    <a className="btn" onClick={() => this.approveMember(membership.uuid)}>Approve</a> 
+                                                    <a className="btn btn-space-left" onClick={() => this.declineMember(membership.uuid)}>Decline</a>
+                                                </div>
+                                            }
+                                        </div>
+                                    );
+                                })
+                                : <div className="card-panel">
+                                    <span>No members</span>
+                                </div>
+                            }
+                        </div>
+
+                        <div id="pending-members">
+                            {this.state.memberships.length !== 0 ?
+                                this.state.memberships.filter((membership) => {
+                                    return membership.status === 'pending';
+                                }).map((membership, index) => {
+                                    return (
+                                        <div className="card" key={index}>
+                                            <div className="card-content">
+                                                <span className="card-title">{membership.user.username ? membership.user.username : membership.user.email}</span>
+
+                                                <p>
+                                                    Status: {membership.status}
+                                                </p>
+                                            </div>
+                                            
+                                            {this.state.user.uuid === this.state.group.user.uuid &&
+                                                <div className="card-action">
+                                                    <a className="btn" onClick={() => this.approveMember(membership.uuid)}>Approve</a> 
+                                                    <a className="btn btn-space-left" onClick={() => this.declineMember(membership.uuid)}>Decline</a>
+                                                </div>
+                                            }
+                                        </div>
+                                    );
+                                })
+                                : <div className="card-panel">
+                                    <span>No members</span>
+                                </div>
+                            }
+                        </div>
+
+                        <div id="all-members">
+                            {this.state.memberships.length !== 0 ?
+                                this.state.memberships.map((membership, index) => {
+                                    return (
+                                        <div className="card" key={index}>
+                                            <div className="card-content">
+                                                <span className="card-title">{membership.user.username ? membership.user.username : membership.user.email}</span>
+
+                                                <p>
+                                                    Status: {membership.status}
+                                                </p>
+                                            </div>
+                                            
+                                            {this.state.user.uuid === this.state.group.user.uuid &&
+                                                <div className="card-action">
+                                                    <a className="btn" onClick={() => this.approveMember(membership.uuid)}>Approve</a> 
+                                                    <a className="btn btn-space-left" onClick={() => this.declineMember(membership.uuid)}>Decline</a>
+                                                </div>
+                                            }
+                                        </div>
+                                    );
+                                })
+                                : <div className="card-panel">
+                                    <span>No members</span>
+                                </div>
+                            }
                         </div>
                     </div>
 

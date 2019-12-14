@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.auth.models import Group
 
 from .models import Tag, Address
 
@@ -31,3 +32,4 @@ class TagAdmin(admin.ModelAdmin):
 
 admin.site.register(Address, AddressAdmin)
 admin.site.register(Tag, TagAdmin)
+admin.site.unregister(Group)
