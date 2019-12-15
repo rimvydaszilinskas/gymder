@@ -164,6 +164,7 @@ class PreviewActivity extends React.Component {
                         alert('Activity fully booked');
                     }
                 } else {
+                    console.log(responseJSON);
                     this.setState({
                         user_request: responseJSON
                     });

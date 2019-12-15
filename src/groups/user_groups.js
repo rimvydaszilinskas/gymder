@@ -14,7 +14,7 @@ class UserGroups extends React.Component {
 
     render() {
         return (
-            <React.Fragment>
+            <div className="container">
                 <div className="row">
                     <div className="col m2 s12 margin-top">
                         <center>
@@ -46,7 +46,7 @@ class UserGroups extends React.Component {
                         </div>
                     </div>
                 </div>
-            </React.Fragment>
+            </div>
         );
     }
 }

@@ -14,7 +14,7 @@ let ActivityCard = (props) => {
                     <i>{props.activity.formatted_dates}</i>
                 </p>
                 <p>
-                    <i>{props.activity.address.address}</i>
+                    <i>{props.activity.address ? props.activity.address.address : '-'}</i>
                 </p>
                 <p><b>{activityType}</b> activity | <b>{props.activity.number_of_attendees}</b> attendees | <b>{publicStatus}</b> {needApproval}</p>
             </div>

@@ -9,6 +9,7 @@ module.exports = {
         'activity_view': './src/activities/preview.js',
         'activities_view': './src/activities/viewactivities.js',
         'activity_attendees': './src/activities/attendees.js',
+        'activities_search': './src/activities/search.js',
         'create_activity': './src/activities/create.js',
         'user_groups': './src/groups/user_groups.js',
         'group_create': './src/groups/create.js',

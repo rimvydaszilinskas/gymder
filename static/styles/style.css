@@ -50,3 +50,7 @@ a.author {
 .btn-space-left {
     margin-left: 1em;
 }
+
+span.help-text {
+    color: darkgray;
+}

@@ -37,7 +37,8 @@ class ActivityView(PageViewMixin):
 
         # try getting user reuqest
         try:
-            user_request = Request.objects.get(user=request.user, is_deleted=False)
+            # user_request = Request.objects.get(user=request.user, is_deleted=False)
+            user_request = activity.requests.get(user=request.user, is_deleted=False)
             user_request = RequestSerializer(user_request).data
         except:
             user_request = None
@@ -80,10 +81,10 @@ class CreateActivityView(PageViewMixin):
 
 class ActivitiesView(PageViewMixin):
     BUNDLE_NAME = 'activities_view'
+    TITLE = 'Activities'
 
     def create_js_context(self, request, *args, **kwargs):
         activities = Activity.objects.filter(
-            time__gte=datetime.today(),
             is_deleted=False
         ).filter(
             Q(user=request.user) | Q(
@@ -91,6 +92,27 @@ class ActivitiesView(PageViewMixin):
                 requests__status=RequestStatus.APPROVED
             )
         )
-        serializer = ActivitySerializer(activities, many=True)
 
-        return {'activities': serializer.data}
+        all_activities = activities.filter(time__gte=datetime.today()).order_by('-time')
+        
+        past_activities = activities.filter(time__lt=datetime.today()).order_by('-time')
+
+        owned_activities = Activity.objects.filter(
+            is_deleted=False,
+            time__gte=datetime.today(),
+            user=request.user).order_by('-time')
+
+        serializer = ActivitySerializer(all_activities, many=True)
+        owned_activities_serializer = ActivitySerializer(owned_activities, many=True)
+        past_activities_serializer = ActivitySerializer(past_activities, many=True)
+
+        return {
+            'activities': serializer.data,
+            'owned_activities': owned_activities_serializer.data,
+            'past_activities': past_activities_serializer.data
+        }
+
+
+class SearchActivitiesView(PageViewMixin):
+    BUNDLE_NAME = 'activities_search'
+    TITLE = 'Search activities'

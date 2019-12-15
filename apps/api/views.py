@@ -347,6 +347,11 @@ class RequestView(FindActivityMixin, APIView):
             uuid=kwargs['request_uuid'],
             activity=activity,
             is_deleted=False)
+        
+        if hasattr(activity, 'max_attendees') and activity.max_attendees >= activity.number_of_attendees:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        elif activity.number_of_attendees != 0:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
         user_request.status = RequestStatus.APPROVED
         user_request.save(update_fields=['status'])
@@ -581,7 +586,7 @@ class MembershipView(MembershipMixin, APIView):
         """
         membership = self.get_membership_edit(
             uuid=kwargs['uuid'], user=request.user)
-        print(request.data)
+
         serializer = self.serializer_class(membership, data=request.data)
 
         serializer.is_valid(raise_exception=True)

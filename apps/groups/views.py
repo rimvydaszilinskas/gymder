@@ -14,9 +14,10 @@ from .utils import has_access
 
 class UserGroupsView(PageViewMixin):
     BUNDLE_NAME = 'user_groups'
+    TITLE = 'Groups'
 
     def create_js_context(self, request, *args, **kwargs):
-        owned_groups = request.user.owned_groups.only_active()
+        owned_groups = request.user.owned_groups.only_active().order_by('-title')
 
         memberships = request.user.memberships.only_active().filter(status=RequestStatus.APPROVED)
 
@@ -24,6 +25,8 @@ class UserGroupsView(PageViewMixin):
 
         for membership in memberships:
             groups |= Group.objects.filter(uuid=membership.group.uuid, is_deleted=False)
+
+        groups = groups.order_by('title')
 
         return {
             'owned_groups': BriefGroupSerializer(owned_groups, many=True).data,
@@ -45,7 +48,7 @@ class GroupView(PageViewMixin):
         serialized_group = BriefGroupSerializer(group)
         serialized_user = UserSerializer(request.user)
 
-        self.TITLE = group.title
+        self.TITLE = group.title + ' group'
 
         return {
             'group': serialized_group.data,
