@@ -23,7 +23,7 @@ class UserGroupsView(PageViewMixin):
         groups = Group.objects.none()
 
         for membership in memberships:
-            groups |= Group.objects.filter(uuid=membership.group.uuid)
+            groups |= Group.objects.filter(uuid=membership.group.uuid, is_deleted=False)
 
         return {
             'owned_groups': BriefGroupSerializer(owned_groups, many=True).data,
@@ -117,5 +117,19 @@ class CreateActivityView(PageViewMixin):
 
         return {
             'group': serialized_group.data,
+            'user': serialized_user.data
+        }
+
+
+class CreateGroupView(PageViewMixin):
+    """
+    Create new group view
+    """
+    BUNDLE_NAME = 'group_create'
+
+    def create_js_context(self, request, *args, **kwargs):
+        serialized_user = UserSerializer(request.user)
+        
+        return {
             'user': serialized_user.data
         }

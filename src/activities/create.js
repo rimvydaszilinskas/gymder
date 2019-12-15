@@ -30,8 +30,6 @@ class CreateActivity extends React.Component {
             errors: null
         };
 
-        console.log(this.state);
-
         this.handleLabelInput = this.handleLabelInput.bind(this);
         this.handleDescriptionInput = this.handleDescriptionInput.bind(this);
         this.handleDateInput = this.handleDateInput.bind(this);

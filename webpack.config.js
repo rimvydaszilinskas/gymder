@@ -11,6 +11,7 @@ module.exports = {
         'activity_attendees': './src/activities/attendees.js',
         'create_activity': './src/activities/create.js',
         'user_groups': './src/groups/user_groups.js',
+        'group_create': './src/groups/create.js',
         'group_view': './src/groups/preview.js',
         'group_members': './src/groups/members.js',
         'group_activities': './src/groups/activities.js',

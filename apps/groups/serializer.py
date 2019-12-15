@@ -9,7 +9,11 @@ from .models import Group, Membership
 class GroupSerializer(serializers.ModelSerializer):
     uuid = serializers.UUIDField(format='hex', read_only=True)
     title = serializers.CharField(max_length=100, required=False)
-    description = serializers.CharField(max_length=500, required=False)
+    description = serializers.CharField(
+        max_length=500,
+        required=False,
+        allow_blank=True,
+        allow_null=True)
     public = serializers.BooleanField(required=False)
     needs_approval = serializers.BooleanField(required=False)
     user = UserSerializer(read_only=True)

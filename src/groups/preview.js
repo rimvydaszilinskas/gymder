@@ -254,6 +254,15 @@ class GroupView extends React.Component {
                                 </center>
                             </div>
                         </div>
+
+                        <div className="card">
+                            <div className="card-content">
+                                <span className="card-title">About</span>
+                                <p>
+                                    {this.state.group.description.length === 0 ? 'No description': this.state.group.description}
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </React.Fragment>
