@@ -230,7 +230,7 @@ class PreviewActivity extends React.Component {
                                     <h3 className="no-margin-top">{this.state.activity.title}</h3>
 
                                     <span className="helper-text">
-                                        {this.state.activity.public ? 'Public' : 'Private'} {this.state.activity.is_group ? '| Group' : ''} {this.determineStatusMessage()} | Hosted by <a href="">{this.state.activity.user.username}</a>
+                                        {this.state.activity.public ? 'Public' : 'Private'} {this.state.activity.is_group ? '| Group' : ''} {this.determineStatusMessage()} | Hosted by <a href={`/users/profile/${this.state.activity.user.uuid}/`}>{this.state.activity.user.username}</a>
                                     </span>
 
                                     {this.state.activity.group && 
@@ -312,7 +312,7 @@ class PreviewActivity extends React.Component {
 													<img className="circle responsive-img profile-img" src="/static/images/default_profile.jpeg"></img>
 												</div>
 												<div className="col s10">
-													<a className="author" href="#">{post.user.username}</a> <br />
+													<a className="author" href={`/user/profile/${post.user.uuid}/`}>{post.user.username}</a> <br />
                                                     <span className="secondary">{post.date}</span> <br />
 													{this.formatDescription(post.body)}
 												</div>

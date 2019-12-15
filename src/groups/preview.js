@@ -197,7 +197,7 @@ class GroupView extends React.Component {
                                     <h3>{this.state.group.title}</h3>
 
                                     <span className="helper-text">
-                                        {this.state.group.number_of_users} members | Created by <a href="#">{this.state.group.user.username}</a>
+                                        {this.state.group.number_of_users} members | Created by <a href={`/users/profile/${this.state.group.user.uuid}/`}>{this.state.group.user.username}</a>
                                     </span>
                                 </div>
                             </div>
@@ -231,7 +231,7 @@ class GroupView extends React.Component {
                                                         <img className="circle responsive-img profile-img" src="/static/images/default_profile.jpeg"></img>
                                                     </div>
                                                     <div className="col s10">
-                                                        <a className="author" href="#">{post.user.username}</a> <br />
+                                                        <a className="author" href={`/users/profile/${post.user.uuid}/`}>{post.user.username}</a> <br />
                                                         <span className="secondary">{post.date}</span> <br />
                                                         {this.formatDescription(post.body)}
                                                     </div>

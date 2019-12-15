@@ -178,7 +178,7 @@ class MembersView extends React.Component {
                                     <h3>{this.state.group.title}</h3>
 
                                     <span className="helper-text">
-                                        {this.state.memberships.length} members | Created by <a href="#">{this.state.group.user.username}</a>
+                                        {this.state.memberships.length} members | Created by <a href={`/users/profile/${this.state.group.user.uuid}/`}>{this.state.group.user.username}</a>
                                     </span>
                                 </div>
                             </div>
@@ -206,7 +206,9 @@ class MembersView extends React.Component {
                                     return (
                                         <div className="card" key={index}>
                                             <div className="card-content">
-                                                <span className="card-title">{membership.user.username ? membership.user.username : membership.user.email}</span>
+                                                <a href={`/users/profile/${membership.user.uuid}`}>
+                                                    <span className="card-title">{membership.user.username ? membership.user.username : membership.user.email}</span>
+                                                </a>
 
                                                 <p>
                                                     Status: {membership.status}
@@ -236,8 +238,10 @@ class MembersView extends React.Component {
                                     return (
                                         <div className="card" key={index}>
                                             <div className="card-content">
-                                                <span className="card-title">{membership.user.username ? membership.user.username : membership.user.email}</span>
-
+                                                <a href={`/users/profile/${membership.user.uuid}`}>
+                                                    <span className="card-title">{membership.user.username ? membership.user.username : membership.user.email}</span>
+                                                </a>
+                                                
                                                 <p>
                                                     Status: {membership.status}
                                                 </p>

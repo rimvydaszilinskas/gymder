@@ -16,8 +16,6 @@ class ActivityAttendees extends React.Component {
         this.determineStatusMessage = this.determineStatusMessage.bind(this);
         this.denyRequest = this.denyRequest.bind(this);
         this.approveRequest = this.approveRequest.bind(this);
-
-        console.log(this.state);
     }
 
     determineStatusMessage() {
@@ -138,7 +136,7 @@ class ActivityAttendees extends React.Component {
                                     <h3 className="no-margin-top">{this.state.activity.title}</h3>
 
                                     <span className="helper-text">
-                                        {this.state.activity.public ? 'Public' : 'Private'} {this.state.activity.is_group ? '| Group' : ''} {this.determineStatusMessage()} | Hosted by <a href="">{this.state.activity.user.username}</a>
+                                        {this.state.activity.public ? 'Public' : 'Private'} {this.state.activity.is_group ? '| Group' : ''} {this.determineStatusMessage()} | Hosted by <a href={`/users/profile/${this.state.activity.user.uuid}/`}>{this.state.activity.user.username}</a>
                                     </span>
                                 </div>
                             </div>
@@ -155,7 +153,7 @@ class ActivityAttendees extends React.Component {
                                         }).map((request, index) => {
                                             return (
                                                 <li className="collection-item avatar" key={index}>
-                                                    <a href="#">
+                                                    <a href={`/users/profile/${request.user.uuid}/`}>
                                                         <i className="material-icons circle green">person</i>
                                                     </a>
                                                     <span className="title">{request.user.username}</span>
@@ -192,7 +190,7 @@ class ActivityAttendees extends React.Component {
                                         }).map((request, index) => {
                                             return (
                                                 <li className="collection-item avatar" key={index}>
-                                                    <a href="#">
+                                                    <a href={`/users/profile/${request.user.uuid}/`}>
                                                         <i className="material-icons circle green">person</i>
                                                     </a>
                                                     <span className="title">{request.user.username ? request.user.username : 'No username'}</span>

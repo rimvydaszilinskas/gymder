@@ -1,24 +1,43 @@
-from django.shortcuts import render, redirect, reverse
+from datetime import datetime
+
+from django.shortcuts import render, redirect, reverse, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.views import View
 
+from apps.activities.models import Activity
+from apps.activities.serializers import ActivitySerializer
+from apps.pages.views_mixins import PageViewMixin
 
 from .models import User
 from .forms import AuthenticationForm
+from .serializers import UserSerializer
 
-class ProfileView(View):
-    template_name = 'users/profile.html'
+
+class SelfProfileView(View):
+    def get(self, request, *args, **kwargs):
+        return redirect(reverse('users:user-profile', args=[request.user.uuid.hex]))
+
+class ProfileView(PageViewMixin):
+    BUNDLE_NAME = 'profile'
 
     def create_js_context(self, request, *args, **kwargs):
-        user = User.objects.get(pk=request.user.pk)
-        self.override_title('{} Profile'.format(user.display_name))
+        user = get_object_or_404(User, uuid=kwargs['uuid'], is_deleted=False)
+        self.TITLE = '{} Profile'.format(user.username if user.username else user.email)
+        activities = Activity.objects.only_active().filter(
+            user=user,
+            public=True,
+            time__gte=datetime.today())
 
+        serializer = UserSerializer(user)
 
-    def get(self, request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return redirect(to=reverse('users:login') + '?next={}&require=true'.format(reverse('users:profile')))
+        activity_serializer = ActivitySerializer(
+            activities, 
+            many=True)
 
-        return render(request, self.template_name)
+        return {
+            'user': serializer.data,
+            'owned_activities': activity_serializer.data
+        }
 
 
 class RegisterView(View):

@@ -16,6 +16,7 @@ module.exports = {
         'group_view': './src/groups/preview.js',
         'group_members': './src/groups/members.js',
         'group_activities': './src/groups/activities.js',
+        'profile': './src/users/profile.js',
     },
     output: {
         path: path.resolve('./static/bundles/'),

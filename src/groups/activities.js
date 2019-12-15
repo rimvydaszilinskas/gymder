@@ -65,7 +65,7 @@ class GroupActivities extends React.Component {
                                     <h3>{this.state.group.title}</h3>
 
                                     <span className="helper-text">
-                                        {this.state.activities.length} activities | Created by <a href="#">{this.state.group.user.username}</a>
+                                        {this.state.activities.length} activities | Created by <a href={`/users/profile/${this.state.group.user.uuid}/`}>{this.state.group.user.username}</a>
                                     </span>
                                 </div>
                             </div>
