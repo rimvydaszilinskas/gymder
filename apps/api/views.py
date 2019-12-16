@@ -468,7 +468,7 @@ class UserTagsView(ListAPIView):
         serializer.save()
         tag = serializer.instance
 
-        if tag in request.user.tags.filter(uuid=tag.uuid).exists():
+        if request.user.tags.filter(uuid=tag.uuid).exists():
             return Response(
                 status=status.HTTP_400_BAD_REQUEST, 
                 data={'detail': 'Tag already added'})
