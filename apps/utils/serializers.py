@@ -142,3 +142,10 @@ class TagSerializer(serializers.ModelSerializer):
             'uuid',
             'title'
         )
+
+    def save(self, **kwargs):
+        title = self.validated_data.get('title')
+
+        self.instance, _ = Tag.objects.get_or_create(title=title)
+
+        return self.instance

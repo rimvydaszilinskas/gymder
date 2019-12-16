@@ -11,7 +11,7 @@ class ActivityAttendees extends React.Component {
         this.state = {
             activity: context.activity,
             user: context.user
-        }
+        };
 
         this.determineStatusMessage = this.determineStatusMessage.bind(this);
         this.denyRequest = this.denyRequest.bind(this);

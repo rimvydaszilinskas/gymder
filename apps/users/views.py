@@ -8,14 +8,17 @@ from apps.activities.models import Activity
 from apps.activities.serializers import ActivitySerializer
 from apps.pages.views_mixins import PageViewMixin
 
+from apps.utils.serializers import TagSerializer
+
 from .models import User
 from .forms import AuthenticationForm
-from .serializers import UserSerializer
+from .serializers import UserSerializer, DetailedUserSerializer
 
 
 class SelfProfileView(View):
     def get(self, request, *args, **kwargs):
         return redirect(reverse('users:user-profile', args=[request.user.uuid.hex]))
+
 
 class ProfileView(PageViewMixin):
     BUNDLE_NAME = 'profile'
@@ -28,7 +31,7 @@ class ProfileView(PageViewMixin):
             public=True,
             time__gte=datetime.today())
 
-        serializer = UserSerializer(user)
+        serializer = DetailedUserSerializer(user)
 
         activity_serializer = ActivitySerializer(
             activities, 
@@ -37,6 +40,21 @@ class ProfileView(PageViewMixin):
         return {
             'user': serializer.data,
             'owned_activities': activity_serializer.data
+        }
+
+
+class ProfileSettingsView(PageViewMixin):
+    BUNDLE_NAME = 'profile_settings'
+    TITLE = 'Settings'
+
+    def create_js_context(self, request, *args, **kwargs):
+        serializer = UserSerializer(request.user)
+
+        tags_serializer = TagSerializer(request.user.tags.all(), many=True)
+
+        return {
+            'user': serializer.data,
+            'tags': tags_serializer.data
         }
 
 

@@ -3,7 +3,7 @@
         <a href="{% url 'users:profile' %}">Profile</a>
     </li>
     <li>
-        <a href="{% url 'users:profile' %}">Settings</a>
+        <a href="{% url 'users:profile-settings' %}">Settings</a>
     </li>
     <li>
         <a href="{% url 'users:logout' %}">Logout</a>
@@ -12,11 +12,11 @@
 
 <ul class="sidenav" id="mobile-nav">
     <li>
-        <a href="#">Home</a>
+        <a href="{% url 'pages:index' %}">Home</a>
     </li>
     {% if user.is_authenticated %}
         <li>
-            <a href="#">Profile</a>
+            <a href="{% url 'users:profile' %}">Profile</a>
         </li>
         <li>
             <a href="{% url 'groups:index' %}">Groups</a>
@@ -46,7 +46,7 @@
 
         <ul id="nav-mobile" class="right hide-on-med-and-down">
             <li>
-                <a href="#">Home</a>
+                <a href="{% url 'pages:index' %}">Home</a>
             </li>
             {% if user.is_authenticated %}
                 <li>

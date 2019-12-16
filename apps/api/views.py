@@ -1,5 +1,6 @@
 from datetime import datetime
 from itertools import chain
+import uuid
 
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
@@ -8,7 +9,7 @@ from django.http import Http404, HttpResponseForbidden, HttpResponseBadRequest
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView
 
 from apps.activities.constants import ActivityFormat, RequestStatus
 from apps.activities.models import (
@@ -40,6 +41,7 @@ from apps.groups.serializer import (
 )
 from apps.groups.utils import has_access, can_edit
 from apps.users.models import User
+from apps.users.serializers import UserSerializer
 from apps.utils.location_utils import get_similar_addresses
 from apps.utils.models import Tag
 from apps.utils.serializers import (
@@ -123,42 +125,100 @@ class ActivityView(PutPatchMixin, FindActivityMixin, APIView):
         return Response(status=status.HTTP_200_OK)
 
 
-class ActivityTagsView(APIView):
+class ActivityTagsView(FindActivityMixin, APIView):
     """
     View for adding tags to activity
     """
     serializer_class = TagSerializer
 
+    def get(self, request, *args, **kwargs):
+        activity = self.get_activity(kwargs['uuid'], request.user)
+
+        tags = activity.tags.all()
+        serializer = self.serializer_class(tags, many=True)
+
+        return Response(serializer.data)        
+
     def post(self, request, *args, **kwargs):
         uuid = kwargs['uuid']
-        activity = get_object_or_404(Activity, uuid=uuid)
+        activity = self.get_activity(kwargs['uuid'], request.user)
 
         can_edit_activity(activity, request.user, raise_exception=True)
 
-        activity_tags = []
-        activity.tags.clear()
-        tags = request.data.get('tags', None)
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        tag = serializer.save()
 
-        if tags and isinstance(tags, list):
-            for tag in tags:
-                title = tag.get('title', None)
-                tag_uuid = tag.get('uuid', None)
+        if activity.tags.filter(uuid=tag.uuid).exists():
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data={'detail': 'Tag already added'})
 
-                if tag_uuid:
-                    tag_db, created = Tag.objects.get_or_create(uuid=tag_uuid)
-                else:
-                    if title is None:
-                        continue
-
-                    title = str(title)
-                    tag_db, created = Tag.objects.get_or_create(title=title)
-
-                activity.tags.add(tag_db)
-                activity_tags.append(tag_db)
-        
-        serializer = self.serializer_class(activity_tags, many=True)
+        activity.tags.add(tag)
 
         return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+    def delete(self, request, *args, **kwargs):
+        activity = self.get_activity(kwargs['uuid'], request.user)
+
+        can_edit_activity(activity, request.user, raise_exception=True)
+
+        tag_uuid = request.data.get('uuid', None)
+
+        if tag_uuid:
+            try:
+                uuid.UUID(tag_uuid)
+            except:
+                return Response(
+                    status=status.HTTP_400_BAD_REQUEST,
+                    data={'detail': '{} is not a valid UUID'.format(tag_uuid)})
+            
+            tag = get_object_or_404(Tag, uuid=tag_uuid)
+        else:
+            tag_title = request.data.get('title', None)
+
+            if tag_title is None:
+                return Response(
+                    status=status.HTTP_400_BAD_REQUEST,
+                    data={'detail': 'title and uuid undefined'})
+            
+            tag = get_object_or_404(Tag, title=tag_title)
+
+        activity.tags.remove(tag)
+
+        return Response()
+
+
+class ActivityTagFilterView(ListAPIView):
+    """
+    Search activities based on tags
+    """
+    serializer_class = ActivitySerializer
+
+    def get_queryset(self):
+        tag_identifier = self.kwargs.get('identifier', None)
+        tag_uuid = None
+
+        try:
+            tag_uuid = uuid.UUID(tag_identifier)
+        except:
+            pass
+        
+        if tag_uuid:
+            tag = get_object_or_404(Tag, uuid=tag_uuid)
+        else:
+            tag = get_object_or_404(Tag, title=tag_identifier)
+
+        return Activity.objects.filter(
+            Q(user=self.request.user) | Q(public=True) |
+            Q(
+                requests__user=self.request.user,
+                requests__status=RequestStatus.APPROVED,
+                requests__is_deleted=False
+            ),
+            is_deleted=False,
+            tags=tag
+        ).filter(time__gte=datetime.today()).order_by('-time')
 
 
 class RegisterActivityAddress(FindActivityMixin, APIView):
@@ -378,6 +438,67 @@ class RequestView(FindActivityMixin, APIView):
         return Response(data=serializer.data)
 
 # User views
+
+
+class SelfUserView(RetrieveAPIView):
+    serializer_class = UserSerializer
+    
+    def get_object(self):
+        return self.request.user
+    
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(instance=request.user, data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        serializer.save()
+
+        return Response(serializer.data)
+
+
+class UserTagsView(ListAPIView):
+    serializer_class = TagSerializer
+
+    def get_queryset(self):
+        return self.request.user.tags.all()
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        tag = serializer.instance
+
+        if tag in request.user.tags.filter(uuid=tag.uuid).exists():
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST, 
+                data={'detail': 'Tag already added'})
+        
+        request.user.tags.add(tag)
+
+        return Response(
+            serializer.data, 
+            status=status.HTTP_200_OK)
+
+    def delete(self, request, *args, **kwargs):
+        tag_uuid = request.data.get('uuid', None)
+
+        if tag_uuid:
+            try:
+                uuid.UUID(tag_uuid)
+            except:
+                return Response(
+                    status=status.HTTP_400_BAD_REQUEST,
+                    data={'detail': '{} is not a valid UUID'.format(tag_uuid)})
+            
+            tag = get_object_or_404(Tag, uuid=tag_uuid)
+            request.user.tags.remove(tag)
+        else:
+            tag_title = request.data.get('title', None)
+
+            tag = get_object_or_404(Tag, title=tag_title)
+            request.user.tags.remove(tag)
+
+        return Response()
 
 
 class UserActivitiesView(ListAPIView):
@@ -645,6 +766,7 @@ class ActivityPostView(FindActivityMixin, ListAPIView):
     serializer_class = PostSerializer
 
     def get_queryset(self):
+        print(self.kwargs['uuid'])
         activity = self.get_activity(self.kwargs['uuid'], self.request.user)
 
         posts = activity.posts.filter(is_deleted=False).order_by('-created_at')

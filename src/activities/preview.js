@@ -20,10 +20,9 @@ class PreviewActivity extends React.Component {
             user_request: context.user_request,
             post: {
                 body: ''
-            }
-        }
-        
-        console.log(this.state);
+            },
+            tag: ''
+        };
         
         this.fetchPosts = this.fetchPosts.bind(this);
         this.handlePostInput = this.handlePostInput.bind(this);
@@ -31,8 +30,11 @@ class PreviewActivity extends React.Component {
         this.handleStatusButtonClick = this.handleStatusButtonClick.bind(this);
         this.determineStatusMessage = this.determineStatusMessage.bind(this);
         this.deleteActivity = this.deleteActivity.bind(this);
+        this.handleDeleteTags = this.handleDeleteTags.bind(this);
+        this.handleTagInput = this.handleTagInput.bind(this);
+        this.handleTagFormSubmit = this.handleTagFormSubmit.bind(this);
 
-		this.fetchPosts()
+        this.fetchPosts()
     }
     
     determineStatusMessage() {
@@ -72,12 +74,16 @@ class PreviewActivity extends React.Component {
         }).then(response => {
 			this.setState({
 				posts_loaded: true
-			});
-			response.json().then(responseJSON => {
-				this.setState({
-					posts: responseJSON
-				})
-			});
+            });
+            
+            if(response.status === 200) {
+                response.json().then(responseJSON => {
+                    this.setState({
+                        posts: responseJSON
+                    })
+                });
+            }
+			
 		}).catch(e => {
 			this.setState({
 				posts_error: true
@@ -198,6 +204,79 @@ class PreviewActivity extends React.Component {
         });
     }
 
+    handleDeleteTags(e, uuid) {
+        fetch(`/api/activities/${this.state.activity.uuid}/tags/`, {
+            method: 'DELETE',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                uuid: uuid
+            })
+        }).then(response => {
+            if(response.status === 200) {
+                let activity = this.state.activity;
+                let tags = activity.tags;
+
+                tags = tags.filter((value) => {
+                    return value.uuid !== uuid;
+                });
+
+                activity.tags = tags;
+
+                this.setState({
+                    activity: activity
+                });
+            } else {
+                alert('Error removing tag');
+            }
+        }).catch(err => {
+            alert('Error removing tag');
+        });
+    }
+
+    handleTagInput(e) {
+        this.setState({
+            tag: e.target.value
+        });
+    }
+
+    handleTagFormSubmit(e) {
+        e.preventDefault();
+
+        fetch(`/api/activities/${this.state.activity.uuid}/tags/`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                title: this.state.tag
+            })
+        }).then(response => {
+            if(response.status === 200) {
+                response.json().then(res => {
+                    let activity = this.state.activity;
+                    let tags = activity.tags;
+
+                    tags.push(res);
+                    activity.tags = tags;
+
+                    this.setState({
+                        activity: activity,
+                        tag: ''
+                    });
+                })
+            }
+        }).catch(e => {
+            console.log(e);
+            alert('Error adding tag');
+        });
+    }
+
     render() {
         return (
             <React.Fragment>
@@ -283,6 +362,18 @@ class PreviewActivity extends React.Component {
                                 </div>
                             </div>
                             <hr/>
+
+                            <div className="row no-margin">
+                                <div className="col s1">
+                                    <i className="small material-icons">format_align_justify</i>
+                                </div>
+                                <div className="col s11">
+                                    {this.state.activity.tags.map((tag, index) => {
+                                        return <a key={index} href={`/activities/search/${tag.uuid}/`}>#{tag.title} </a>;
+                                    })}
+                                </div>
+                            </div>
+                            <hr/>
                         </div>
 
 						<div className="card-panel">
@@ -323,6 +414,41 @@ class PreviewActivity extends React.Component {
 						}
 
                     </div>
+                    {
+                        this.state.user.uuid === this.state.activity.user.uuid &&
+                        <div className="col m2 s12">
+                            <center>
+                                <h4>Tags</h4>
+                            </center>
+                            
+                            <div className="row">
+                            {
+                                this.state.activity.tags.map((tag, index) => {
+                                    return (
+                                        <div className="chip" key={index}>
+                                            <span>{tag.title}</span>
+                                            <i className="material-icons click" onClick={(e) => {this.handleDeleteTags(e, tag.uuid)}}>close</i>
+                                        </div>
+                                    );
+                                })
+                            }
+                            </div>
+
+                            <div className="row padding">
+                                <form ref="form" onSubmit={this.handleTagFormSubmit}>
+                                    <div className="row input-field">
+                                        <input type="text" className="validate" id="tag" value={this.state.tag} onChange={this.handleTagInput}></input>
+                                        <label htmlFor="tag">+Tag</label>
+                                    </div>
+
+                                    <center>
+                                        <button className="btn" type="submit">Submit</button>
+                                    </center>
+                                </form>
+                            </div>
+                            
+                        </div>
+                    }
                 </div>
             </React.Fragment>
         );

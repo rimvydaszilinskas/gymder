@@ -6,6 +6,7 @@ module.exports = {
     context: __dirname,
     entry: {
         'index': './src/index.js',
+        'activity_tag_filtering': './src/activities/tagSearch.js',
         'activity_view': './src/activities/preview.js',
         'activities_view': './src/activities/viewactivities.js',
         'activity_attendees': './src/activities/attendees.js',
@@ -17,6 +18,7 @@ module.exports = {
         'group_members': './src/groups/members.js',
         'group_activities': './src/groups/activities.js',
         'profile': './src/users/profile.js',
+        'profile_settings': './src/users/settings.js',
     },
     output: {
         path: path.resolve('./static/bundles/'),

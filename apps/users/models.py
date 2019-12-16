@@ -3,7 +3,7 @@ from django.contrib.auth.models import AbstractUser
 from django.utils.translation import ugettext as  _
 from django.utils.functional import cached_property
 
-from apps.utils.models import BaseModel, Address
+from apps.utils.models import BaseModel, Address, Tag
 
 from .managers import UserManager
 
@@ -18,6 +18,12 @@ class User(BaseModel, AbstractUser):
         blank=True,
         related_name='default_user',
         on_delete=models.SET_NULL)
+
+    tags = models.ManyToManyField(
+        to=Tag,
+        related_name='followers',
+        blank=True
+    )
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []

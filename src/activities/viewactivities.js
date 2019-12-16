@@ -11,8 +11,6 @@ class ViewActivities extends React.Component {
             ownedActivities: context.owned_activities,
             pastActivities: context.past_activities
         };
-
-        console.log(this.state);
     }
 
     render() {

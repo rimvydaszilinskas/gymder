@@ -10,8 +10,6 @@ class Profile extends React.Component {
             user: context.user,
             activities: context.owned_activities
         };
-
-        console.log(this.state.activities)
     }
 
     render() {
@@ -27,6 +25,14 @@ class Profile extends React.Component {
 
                         <p>
                             @{this.state.user.username} | {this.state.user.email}
+                        </p>
+                        
+                        <p>
+                            {
+                                this.state.user.tags.map((tag, index) => {
+                                    return <a key={index} href={`/activities/search/${tag.uuid}/`}>#{tag.title} </a>
+                                })
+                            }
                         </p>
 
                         <h5>Activities</h5>

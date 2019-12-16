@@ -8,6 +8,8 @@ from apps.activities.serializers import ActivitySerializer
 from apps.activities.constants import RequestStatus
 from apps.pages.views_mixins import PageViewMixin
 from apps.users.serializers import UserSerializer
+from apps.utils.models import Tag
+from apps.utils.serializers import TagSerializer
 
 from .models import (
     Activity, 
@@ -76,7 +78,9 @@ class CreateActivityView(PageViewMixin):
 
         serializer = UserSerializer(user)
 
-        return {'user': serializer.data}
+        return {
+            'user': serializer.data
+        }
 
 
 class ActivitiesView(PageViewMixin):
@@ -85,12 +89,12 @@ class ActivitiesView(PageViewMixin):
 
     def create_js_context(self, request, *args, **kwargs):
         activities = Activity.objects.filter(
-            is_deleted=False
-        ).filter(
             Q(user=request.user) | Q(
                 requests__user=request.user,
-                requests__status=RequestStatus.APPROVED
-            )
+                requests__status=RequestStatus.APPROVED,
+                requests__is_deleted=False
+            ),
+            is_deleted=False
         )
 
         all_activities = activities.filter(time__gte=datetime.today()).order_by('-time')
@@ -116,3 +120,30 @@ class ActivitiesView(PageViewMixin):
 class SearchActivitiesView(PageViewMixin):
     BUNDLE_NAME = 'activities_search'
     TITLE = 'Search activities'
+
+
+class TagFilterView(PageViewMixin):
+    BUNDLE_NAME = 'activity_tag_filtering'
+    serializer_class = ActivitySerializer
+
+    def create_js_context(self, request, *args, **kwargs):
+        tag = get_object_or_404(Tag, uuid=kwargs['uuid'])
+
+        activities = Activity.objects.filter(
+            Q(user=request.user) | Q(public=True) |
+            Q(
+                requests__user=request.user,
+                requests__status=RequestStatus.APPROVED,
+                requests__is_deleted=False
+            ),
+            is_deleted=False,
+            tags=tag
+        ).filter(time__gte=datetime.today()).order_by('-time')
+
+        serializer = self.serializer_class(activities, many=True)
+        tag_serializer = TagSerializer(tag)
+
+        return {
+            'activities': serializer.data,
+            'tag': tag_serializer.data
+        }
