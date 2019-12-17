@@ -574,7 +574,8 @@ class UserGroupView(ListAPIView):
             is_deleted=False).filter(
                 Q(user=self.request.user) | Q(
                     memberships__user=self.request.user, 
-                    memberships__status=RequestStatus.APPROVED)
+                    memberships__status=RequestStatus.APPROVED,
+                    memberships__is_deleted=False)
             )
         
         return groups
