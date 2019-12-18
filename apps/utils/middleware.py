@@ -31,18 +31,24 @@ class LoginRequiredMiddleware:
 
         path = request.path_info.lstrip('/')
 
+        # If user is not authenticated and trying to access login required data, redirect to login
         if not request.user.is_authenticated:
             if not any(url.match(path) for url in EXEMPT_URLS):
                 return redirect(settings.LOGIN_URL)
 
+        # Booleans
         url_is_exempt = any(url.match(path) for url in EXEMPT_URLS)
         url_is_global = any(url.match(path) for url in [re.compile(_) for _ in settings.ALLOW_ALL_URLS])
-
+        
+        # If user wants to logout, always allow
         if path == reverse('users:logout').lstrip('/'):
             return None
         elif url_is_global:
+            # if url is global, do nothing and continue with request
             return None
         elif request.user.is_authenticated and url_is_exempt:
+            # If user is authenticated and trying to access data for not authenticated users, send him to his profile
             return redirect(settings.LOGIN_REDIRECT_URL)
         elif request.user.is_authenticated or url_is_exempt:
+            # Let it be
             return None
