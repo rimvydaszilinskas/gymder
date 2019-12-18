@@ -730,6 +730,18 @@ class MembershipView(MembershipMixin, APIView):
         return Response(status=status.HTTP_200_OK)
 
 
+class GroupActivitiesView(GroupMixin, ListAPIView):
+    """
+    Group activities CRUD
+    """
+    serializer_class = ActivitySerializer
+
+    def get_queryset(self):
+        group = self.get_group(self.kwargs['uuid'], self.request.user)
+        
+        return group.activities.filter(is_deleted=False)
+
+
 # Communication views
 
 

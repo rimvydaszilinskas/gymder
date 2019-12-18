@@ -30,6 +30,7 @@ urlpatterns = [
     url(r'^groups/(?P<uuid>\w+)/$', views.GroupView.as_view(), name='groups'),
     url(r'^groups/(?P<uuid>\w+)/memberships/$', views.GroupMembershipsView.as_view(), name='groups-memberships'),
     url(r'^groups/(?P<uuid>\w+)/posts/$', views.GroupPostView.as_view(), name='group-posts'),
+    url(r'^groups/(?P<uuid>\w+)/activities/', views.GroupActivitiesView.as_view(), name='group-activities'),
 
     # User paths
     url(r'^user/$', views.SelfUserView.as_view(), name='self-user'),
