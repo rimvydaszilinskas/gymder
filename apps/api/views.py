@@ -312,7 +312,7 @@ class SearchActivitiesView(APIView):
 
         if query is not None:
             activities = activities.filter(
-                Q(title__contains=query) | Q(description__contains=query) | Q(tags__title=query))
+                Q(title__icontains=query) | Q(description__icontains=query) | Q(tags__title__icontains=query) | Q(address__address__icontains=query))
 
         serializer = self.serializer_class(activities, many=True)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
