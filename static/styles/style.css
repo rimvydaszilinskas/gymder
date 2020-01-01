@@ -62,3 +62,8 @@ span.help-text {
 .padding {
     padding: 10px;
 }
+
+p.error {
+    color: red;
+    font-weight: bold;
+}

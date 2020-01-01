@@ -65,37 +65,49 @@ class RegisterView(View):
         if request.user.is_authenticated:
             return redirect('users:profile')
 
+        context = {}
+
+        if 'registration_errors' in kwargs:
+            context['error'] = kwargs['registration_errors']
+
         return render(
-            request,
-            self.template_name)
+            request,self.template_name, context=context)
 
     def post(self, request, *args, **kwargs):
-        print(request.POST)
         email = request.POST.get('email', None)
         password = request.POST.get('password', None)
-        password_repeat = request.POST.get('repeat_password', None)
+        password_repeat = request.POST.get('password_repeat', None)
         first_name = request.POST.get('first_name', None)
         last_name = request.POST.get('last_name', None)
-        # terms = request.Post.get(bool="yes")
+
+        # Check if the data exists in the request
+        if email is None or password is None \
+            or password_repeat is None \
+                or first_name is None or last_name is None:
+            kwargs['registration_errors'] = 'Please fill all the fields'
+            return self.get(request, *args, **kwargs)
 
         try:
             if password != password_repeat:
-                print('password do not match')
+                kwargs['registration_errors'] = 'Passwords do not match'
                 return self.get(request, *args, **kwargs)
 
             user = User.objects.get(email=email)
-            print('got email', email)
-            print(user)
+
+            kwargs['registration_errors'] = 'Email is already registered'
             return self.get(request, *args, **kwargs)
         except:
-            user = User.objects.create_user(email, password)
+            user = User.objects.create_user(
+                email, 
+                password, 
+                first_name=first_name, 
+                last_name=last_name)
 
             user.first_name = first_name
             user.last_name = last_name
-            # user.terms = terms
             user.save()
 
-            return redirect(reverse('users:login'))
+            return redirect(reverse('users:login') + '?registered=True&email={}'.format(email))
 
 
 class LoginView(View):
@@ -106,6 +118,10 @@ class LoginView(View):
         if request.user.is_authenticated:
             # check if it has next
             next_page = request.GET.get('next', None)
+            registered_email = request.GET.get('email', None)
+
+            if registered_email:
+                kwargs['email'] = registered_email
 
             if next_page:
                 return redirect(next_page)
