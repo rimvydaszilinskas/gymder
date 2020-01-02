@@ -115,6 +115,12 @@ Finally run the webpack listener on the project:
 npm run watch
 ```
 
+If you are ready to build React files for deployment, run the following command:
+
+```shell
+npm run build
+```
+
 ### Using Google Maps Api
 
 To use Google Maps API add the API KEY to environmental variables:
