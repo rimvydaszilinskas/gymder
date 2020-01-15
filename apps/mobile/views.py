@@ -16,6 +16,9 @@ class AuthPingView(views.APIView):
 
 
 class PingView(views.APIView):
+    authentication_classes = []
+    permission_classes = []
+
     def get(self, request, *args, **kwargs):
         return Response()
 
